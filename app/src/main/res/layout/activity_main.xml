@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Speech Plus TTS Engine"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Target Language"
+        android:textSize="16sp" />
+
+    <Spinner
+        android:id="@+id/spinnerLanguages"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:contentDescription="Select Language for TTS routing"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select TTS Engine"
+        android:textSize="16sp" />
+
+    <Spinner
+        android:id="@+id/spinnerEngines"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:contentDescription="Select TTS Engine for the language"
+        android:layout_marginBottom="30dp" />
+
+    <Button
+        android:id="@+id/btnTestVoice"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:contentDescription="Test configured voice playback"
+        android:text="Test Voice" />
+
+</LinearLayout>
