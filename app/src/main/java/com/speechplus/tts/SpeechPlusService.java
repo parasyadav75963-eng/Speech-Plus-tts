@@ -1,5 +1,6 @@
 package com.speechplus.tts;
 
+import android.content.SharedPreferences;
 import android.media.AudioFormat;
 import android.speech.tts.SynthesisCallback;
 import android.speech.tts.SynthesisRequest;
@@ -15,11 +16,26 @@ import java.util.Set;
 
 public class SpeechPlusService extends TextToSpeechService {
 
-    private Locale currentLocale = Locale.US;
+    private TextToSpeech internalTts;
+    private boolean isInitialized = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        internalTts = new TextToSpeech(getApplicationContext(), status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                isInitialized = true;
+            }
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        if (internalTts != null) {
+            internalTts.stop();
+            internalTts.shutdown();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -29,26 +45,19 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override
     protected String[] onGetLanguage() {
-        return new String[]{
-            currentLocale.getLanguage(),
-            currentLocale.getCountry(),
-            currentLocale.getVariant()
-        };
+        return new String[]{"eng", "USA", ""};
     }
 
     @Override
     protected int onLoadLanguage(String lang, String country, String variant) {
-        currentLocale = new Locale(
-            lang != null ? lang : "en",
-            country != null ? country : "",
-            variant != null ? variant : ""
-        );
         return TextToSpeech.LANG_AVAILABLE;
     }
 
     @Override
     protected void onStop() {
-        // स्पीच रोकने के लिए
+        if (internalTts != null) {
+            internalTts.stop();
+        }
     }
 
     @Override
@@ -77,17 +86,22 @@ public class SpeechPlusService extends TextToSpeechService {
     @Override
     protected void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         CharSequence text = request.getCharSequenceText();
-        if (text == null) {
+        if (text == null || text.length() == 0) {
             return;
         }
 
-        int sampleRate = 16000;
-        callback.start(sampleRate, AudioFormat.ENCODING_PCM_16BIT, 1);
+        SharedPreferences prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
+        float rate = prefs.getFloat("rate", 1.0f);
+        float pitch = prefs.getFloat("pitch", 1.0f);
 
-        // क्रैश से बचने के लिए न्यूनतम शांत (Silence) बफर भेजें
-        byte[] buffer = new byte[3200];
-        callback.audioAvailable(buffer, 0, buffer.length);
+        if (internalTts != null && isInitialized) {
+            internalTts.setSpeechRate(rate);
+            internalTts.setPitch(pitch);
+            internalTts.speak(text.toString(), TextToSpeech.QUEUE_FLUSH, null, "synth_" + System.currentTimeMillis());
+        }
 
+        // TalkBack को फीडबैक पूरा करने का सिग्नल दें
+        callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1);
         callback.done();
     }
 }

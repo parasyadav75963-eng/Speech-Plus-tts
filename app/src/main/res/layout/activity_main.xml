@@ -1,49 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="20dp">
+    android:background="#121212"
+    android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Speech Plus TTS Engine"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Target Language"
-        android:textSize="16sp" />
-
-    <Spinner
-        android:id="@+id/spinnerLanguages"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:contentDescription="Select Language for TTS routing"
-        android:layout_marginBottom="20dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select TTS Engine"
-        android:textSize="16sp" />
+        android:orientation="vertical">
 
-    <Spinner
-        android:id="@+id/spinnerEngines"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:contentDescription="Select TTS Engine for the language"
-        android:layout_marginBottom="30dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Speech Plus TTS Engine"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
 
-    <Button
-        android:id="@+id/btnTestVoice"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:contentDescription="Test configured voice playback"
-        android:text="Test Voice" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Target Language"
+            android:textColor="#B0B0B0"
+            android:textSize="14sp" />
 
-</LinearLayout>
+        <Spinner
+            android:id="@+id/spinnerLanguages"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select TTS Engine"
+            android:textColor="#B0B0B0"
+            android:textSize="14sp" />
+
+        <Spinner
+            android:id="@+id/spinnerEngines"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Speech Rate -->
+        <TextView
+            android:id="@+id/lblRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Speech Rate: 1.0x"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <SeekBar
+            android:id="@+id/seekRate"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:max="20"
+            android:progress="10"
+            android:contentDescription="Speech Rate Slider"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Speech Pitch -->
+        <TextView
+            android:id="@+id/lblPitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pitch: 1.0x"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <SeekBar
+            android:id="@+id/seekPitch"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:max="20"
+            android:progress="10"
+            android:contentDescription="Pitch Slider"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/btnTestVoice"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="TEST VOICE"
+            android:textAllCaps="true"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>
