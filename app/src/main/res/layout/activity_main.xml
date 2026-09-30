@@ -15,16 +15,17 @@
             android:layout_height="wrap_content"
             android:text="Speech Plus TTS Engine"
             android:textColor="#FFFFFF"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select Target Language"
-            android:textColor="#B0B0B0"
-            android:textSize="14sp" />
+            android:text="Target Language (A to Z)"
+            android:textColor="#80CBC4"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinnerLanguages"
@@ -37,17 +38,32 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Select TTS Engine"
-            android:textColor="#B0B0B0"
-            android:textSize="14sp" />
+            android:textColor="#80CBC4"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinnerEngines"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@android:drawable/btn_dropdown"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="16dp" />
 
-        <!-- Speech Rate -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Audio Stream Routing"
+            android:textColor="#80CBC4"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerAudioRouting"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:layout_marginBottom="16dp" />
+
         <TextView
             android:id="@+id/lblRate"
             android:layout_width="wrap_content"
@@ -60,12 +76,11 @@
             android:id="@+id/seekRate"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:max="20"
+            android:max="25"
             android:progress="10"
             android:contentDescription="Speech Rate Slider"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
-        <!-- Speech Pitch -->
         <TextView
             android:id="@+id/lblPitch"
             android:layout_width="wrap_content"
@@ -81,15 +96,71 @@
             android:max="20"
             android:progress="10"
             android:contentDescription="Pitch Slider"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="12dp" />
 
-        <Button
-            android:id="@+id/btnTestVoice"
+        <TextView
+            android:id="@+id/lblVolume"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Volume: 100%"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+
+        <SeekBar
+            android:id="@+id/seekVolume"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="TEST VOICE"
-            android:textAllCaps="true"
-            android:textStyle="bold" />
+            android:max="100"
+            android:progress="100"
+            android:contentDescription="Volume Slider"
+            android:layout_marginBottom="20dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="12dp">
+
+            <Button
+                android:id="@+id/btnTestVoice"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="TEST VOICE"
+                android:backgroundTint="#00897B"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnStopSpeaking"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="STOP"
+                android:backgroundTint="#C62828"
+                android:textColor="#FFFFFF"
+                android:layout_marginStart="6dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnSaveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="SAVE SETTINGS"
+            android:backgroundTint="#2E7D32"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnAbout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="ABOUT SPEECH PLUS"
+            android:backgroundTint="#37474F"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="32dp" />
 
     </LinearLayout>
 </ScrollView>
