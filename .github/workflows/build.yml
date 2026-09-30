@@ -33,27 +33,27 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.2.0.apk
+          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.2.1.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SpeechPlusTTS-APK
-          path: SpeechPlusTTS-v1.2.0.apk
+          path: SpeechPlusTTS-v1.2.1.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.2.0
-          name: "Speech Plus TTS v1.2.0"
+          tag_name: v1.2.1
+          name: "Speech Plus TTS v1.2.1"
           body: |
-            ### Speech Plus TTS Engine v1.2.0
+            ### Speech Plus TTS Engine v1.2.1
             - Fixed accessibility audio stream routing
             - Added TalkBack speech rate sync
             - Fixed character-by-character typing reading
             - Added dynamic voice and language support
             - Updated About section with contact and social links
-          files: SpeechPlusTTS-v1.2.0.apk
+          files: SpeechPlusTTS-v1.2.1.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

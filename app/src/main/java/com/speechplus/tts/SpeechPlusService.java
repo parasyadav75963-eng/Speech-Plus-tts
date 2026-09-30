@@ -20,93 +20,117 @@ import java.util.Set;
 
 public class SpeechPlusService extends TextToSpeechService {
 
-    private TextToSpeech internalTts;
-    private volatile boolean isInitialized = false;
+    private TextToSpeech primaryTts;
+    private TextToSpeech secondaryTts;
+    private volatile boolean isPrimaryInit = false;
+    private volatile boolean isSecondaryInit = false;
     private Handler mainHandler;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mainHandler = new Handler(Looper.getMainLooper());
-        initTargetEngine();
+        initEngines();
     }
 
-    private void initTargetEngine() {
+    private void initEngines() {
         mainHandler.post(() -> {
             SharedPreferences prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
             String targetEngine = prefs.getString("selected_engine", null);
+            String secondaryEngine = prefs.getString("secondary_engine", targetEngine);
 
-            TextToSpeech.OnInitListener listener = status -> {
+            AudioAttributes attrs = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build();
+
+            TextToSpeech.OnInitListener primaryListener = status -> {
                 if (status == TextToSpeech.SUCCESS) {
-                    isInitialized = true;
-                    try {
-                        AudioAttributes attrs = new AudioAttributes.Builder()
-                                .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
-                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                                .build();
-                        internalTts.setAudioAttributes(attrs);
-                    } catch (Exception ignored) {}
+                    isPrimaryInit = true;
+                    try { primaryTts.setAudioAttributes(attrs); } catch (Exception ignored) {}
+                }
+            };
+
+            TextToSpeech.OnInitListener secondaryListener = status -> {
+                if (status == TextToSpeech.SUCCESS) {
+                    isSecondaryInit = true;
+                    try { secondaryTts.setAudioAttributes(attrs); } catch (Exception ignored) {}
                 }
             };
 
             try {
                 if (targetEngine != null && !targetEngine.trim().isEmpty()) {
-                    internalTts = new TextToSpeech(getApplicationContext(), listener, targetEngine);
+                    primaryTts = new TextToSpeech(getApplicationContext(), primaryListener, targetEngine);
                 } else {
-                    internalTts = new TextToSpeech(getApplicationContext(), listener);
+                    primaryTts = new TextToSpeech(getApplicationContext(), primaryListener);
                 }
             } catch (Exception e) {
-                internalTts = new TextToSpeech(getApplicationContext(), listener);
+                primaryTts = new TextToSpeech(getApplicationContext(), primaryListener);
+            }
+
+            try {
+                if (secondaryEngine != null && !secondaryEngine.trim().isEmpty()) {
+                    secondaryTts = new TextToSpeech(getApplicationContext(), secondaryListener, secondaryEngine);
+                } else {
+                    secondaryTts = primaryTts;
+                    isSecondaryInit = true;
+                }
+            } catch (Exception e) {
+                secondaryTts = primaryTts;
+                isSecondaryInit = true;
             }
         });
     }
 
     @Override
     public void onDestroy() {
-        if (internalTts != null) {
-            internalTts.stop();
-            internalTts.shutdown();
+        if (primaryTts != null) {
+            primaryTts.stop();
+            primaryTts.shutdown();
+        }
+        if (secondaryTts != null && secondaryTts != primaryTts) {
+            secondaryTts.stop();
+            secondaryTts.shutdown();
         }
         super.onDestroy();
     }
 
     @Override
     protected int onIsLanguageAvailable(String lang, String country, String variant) {
-        if (internalTts != null && isInitialized) {
-            return internalTts.isLanguageAvailable(new Locale(lang, country, variant));
+        if (primaryTts != null && isPrimaryInit) {
+            return primaryTts.isLanguageAvailable(new Locale(lang, country, variant));
         }
         return TextToSpeech.LANG_AVAILABLE;
     }
 
     @Override
     protected String[] onGetLanguage() {
-        if (internalTts != null && isInitialized && internalTts.getLanguage() != null) {
-            Locale loc = internalTts.getLanguage();
+        if (primaryTts != null && isPrimaryInit && primaryTts.getLanguage() != null) {
+            Locale loc = primaryTts.getLanguage();
             return new String[]{loc.getISO3Language(), loc.getISO3Country(), loc.getVariant()};
         }
-        return new String[]{"eng", "USA", ""};
+        return new String[]{"hin", "IND", ""};
     }
 
     @Override
     protected int onLoadLanguage(String lang, String country, String variant) {
-        if (internalTts != null && isInitialized) {
-            return internalTts.setLanguage(new Locale(lang, country, variant));
+        if (primaryTts != null && isPrimaryInit) {
+            return primaryTts.setLanguage(new Locale(lang, country, variant));
         }
         return TextToSpeech.LANG_AVAILABLE;
     }
 
     @Override
     protected void onStop() {
-        if (internalTts != null) {
-            internalTts.stop();
-        }
+        if (primaryTts != null) primaryTts.stop();
+        if (secondaryTts != null && secondaryTts != primaryTts) secondaryTts.stop();
     }
 
     @Override
     public List<Voice> onGetVoices() {
-        if (internalTts != null && isInitialized) {
+        if (primaryTts != null && isPrimaryInit) {
             try {
-                Set<Voice> voices = internalTts.getVoices();
+                Set<Voice> voices = primaryTts.getVoices();
                 if (voices != null && !voices.isEmpty()) {
                     return new ArrayList<>(voices);
                 }
@@ -119,9 +143,9 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override
     public String onGetDefaultVoiceNameFor(String lang, String country, String variant) {
-        if (internalTts != null && isInitialized) {
+        if (primaryTts != null && isPrimaryInit) {
             try {
-                Voice v = internalTts.getDefaultVoice();
+                Voice v = primaryTts.getDefaultVoice();
                 if (v != null) return v.getName();
             } catch (Exception ignored) {}
         }
@@ -130,13 +154,13 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override
     public int onLoadVoice(String name) {
-        if (internalTts != null && isInitialized) {
+        if (primaryTts != null && isPrimaryInit) {
             try {
-                Set<Voice> voices = internalTts.getVoices();
+                Set<Voice> voices = primaryTts.getVoices();
                 if (voices != null) {
                     for (Voice v : voices) {
                         if (v.getName().equals(name)) {
-                            return internalTts.setVoice(v);
+                            return primaryTts.setVoice(v);
                         }
                     }
                 }
@@ -152,42 +176,75 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override
     protected void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
-        CharSequence text = request.getCharSequenceText();
-        if (text == null || text.length() == 0) {
+        CharSequence textSeq = request.getCharSequenceText();
+        if (textSeq == null || textSeq.length() == 0) {
             return;
         }
 
-        // TalkBack speed synchronization (Priority to TalkBack request speech rate)
-        float rate = (float) request.getSpeechRate() / 100.0f;
-        if (rate <= 0.0f) {
-            SharedPreferences prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
+        String text = textSeq.toString();
+
+        SharedPreferences prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
+        boolean forceRate = prefs.getBoolean("force_rate", false);
+        boolean forcePitch = prefs.getBoolean("force_pitch", false);
+        int mode = prefs.getInt("tts_mode", 0); // 0: Single, 1: Dual, 2: Mix
+
+        float rate;
+        if (forceRate) {
             rate = prefs.getFloat("rate", 1.0f);
+        } else {
+            rate = (float) request.getSpeechRate() / 100.0f;
+            if (rate <= 0.0f) rate = prefs.getFloat("rate", 1.0f);
         }
 
-        float pitch = (float) request.getPitch() / 100.0f;
-        if (pitch <= 0.0f) {
-            SharedPreferences prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
+        float pitch;
+        if (forcePitch) {
             pitch = prefs.getFloat("pitch", 1.0f);
+        } else {
+            pitch = (float) request.getPitch() / 100.0f;
+            if (pitch <= 0.0f) pitch = prefs.getFloat("pitch", 1.0f);
+        }
+
+        // Mode-based engine routing
+        TextToSpeech selectedTts = primaryTts;
+        if (mode == 1 || mode == 2) {
+            boolean hasLatin = false;
+            boolean hasIndic = false;
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
+                if (block == Character.UnicodeBlock.BASIC_LATIN || block == Character.UnicodeBlock.LATIN_1_SUPPLEMENT) {
+                    if (Character.isLetter(c)) hasLatin = true;
+                } else if (block == Character.UnicodeBlock.DEVANAGARI || block == Character.UnicodeBlock.BENGALI || 
+                           block == Character.UnicodeBlock.TAMIL || block == Character.UnicodeBlock.TELUGU) {
+                    hasIndic = true;
+                }
+            }
+            if (hasLatin && !hasIndic && secondaryTts != null && isSecondaryInit) {
+                selectedTts = secondaryTts;
+            }
         }
 
         callback.start(16000, android.media.AudioFormat.ENCODING_PCM_16BIT, 1);
 
-        if (internalTts != null && isInitialized) {
-            internalTts.setSpeechRate(rate);
-            internalTts.setPitch(pitch);
+        if (selectedTts != null && (selectedTts == primaryTts ? isPrimaryInit : isSecondaryInit)) {
+            selectedTts.setSpeechRate(rate);
+            selectedTts.setPitch(pitch);
 
-            // Handle language/locale requested by TalkBack for character/word reading
+            // Fast character echo for typing
+            if (text.length() == 1) {
+                selectedTts.setSpeechRate(rate * 1.05f);
+            }
+
             String reqLang = request.getLanguage();
             if (reqLang != null && !reqLang.isEmpty()) {
                 try {
-                    internalTts.setLanguage(new Locale(reqLang, request.getCountry() != null ? request.getCountry() : ""));
+                    selectedTts.setLanguage(new Locale(reqLang, request.getCountry() != null ? request.getCountry() : ""));
                 } catch (Exception ignored) {}
             }
 
             Bundle params = new Bundle();
             params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_ACCESSIBILITY);
-
-            internalTts.speak(text.toString(), TextToSpeech.QUEUE_FLUSH, params, "req_" + System.currentTimeMillis());
+            selectedTts.speak(text, TextToSpeech.QUEUE_FLUSH, params, "sp_" + System.currentTimeMillis());
         }
 
         callback.done();
