@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadEngines() {
-        TextToSpeech helper = new TextToSpeech(this, status -> {
+        TextToSpeech helper = new TextToSpeech(this, null);
             if (status == TextToSpeech.SUCCESS) {
                 enginesList = helper.getEngines();
                 List<String> labels = new ArrayList<>();
