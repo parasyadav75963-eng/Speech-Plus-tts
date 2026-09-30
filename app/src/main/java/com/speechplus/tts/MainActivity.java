@@ -28,9 +28,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String CURRENT_VERSION = "1.2.0";
     private static final String REPO_RELEASES_URL = "https://api.github.com/repos/parasyadav75963-eng/Speech-Plus-tts/releases/latest";
 
-    private Spinner spinnerLanguages;
     private SharedPreferences prefs;
-
     private final String[] modes = {"Single Language Mode", "Dual Language Mode", "Mix Mode (Auto Detect)"};
 
     @Override
@@ -40,29 +38,31 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
 
-        spinnerLanguages = findViewById(R.id.spinnerLanguages);
-        if (spinnerLanguages != null) {
-            ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, modes);
-            spinnerLanguages.setAdapter(modeAdapter);
-            spinnerLanguages.setSelection(prefs.getInt("tts_mode", 0));
-            spinnerLanguages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    prefs.edit().putInt("tts_mode", position).apply();
-                }
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
-            });
+        // Safe dynamic view lookup
+        int langSpinnerId = getResources().getIdentifier("spinnerLanguages", "id", getPackageName());
+        if (langSpinnerId != 0) {
+            Spinner spinnerLanguages = findViewById(langSpinnerId);
+            if (spinnerLanguages != null) {
+                ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, modes);
+                spinnerLanguages.setAdapter(modeAdapter);
+                spinnerLanguages.setSelection(prefs.getInt("tts_mode", 0));
+                spinnerLanguages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                        prefs.edit().putInt("tts_mode", position).apply();
+                    }
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {}
+                });
+            }
         }
 
-        Button btnTest = findViewById(R.id.btnTest);
-        if (btnTest != null) {
-            btnTest.setOnClickListener(v -> Toast.makeText(this, "Testing Speech Plus TTS...", Toast.LENGTH_SHORT).show());
-        }
-
-        Button btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
-        if (btnCheckUpdate != null) {
-            btnCheckUpdate.setOnClickListener(v -> checkForUpdates(true));
+        int checkUpdateId = getResources().getIdentifier("btnCheckUpdate", "id", getPackageName());
+        if (checkUpdateId != 0) {
+            View btnCheckUpdate = findViewById(checkUpdateId);
+            if (btnCheckUpdate != null) {
+                btnCheckUpdate.setOnClickListener(v -> checkForUpdates(true));
+            }
         }
     }
 
