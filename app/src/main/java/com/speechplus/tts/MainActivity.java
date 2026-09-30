@@ -9,7 +9,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -38,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
 
-        // Safe dynamic view lookup
         int langSpinnerId = getResources().getIdentifier("spinnerLanguages", "id", getPackageName());
         if (langSpinnerId != 0) {
             Spinner spinnerLanguages = findViewById(langSpinnerId);
@@ -128,7 +126,9 @@ public class MainActivity extends AppCompatActivity {
                 conn.setConnectTimeout(8000);
                 conn.setReadTimeout(8000);
 
-                if (conn.getResponseCode() == 200) {
+                int responseCode = conn.getResponseCode();
+
+                if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -154,7 +154,8 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(() -> Toast.makeText(MainActivity.this, "App is up to date! (v" + CURRENT_VERSION + ")", Toast.LENGTH_LONG).show());
                     }
                 } else if (manual) {
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "No updates found or server error (" + conn.getResponseCode() + ")", Toast.LENGTH_SHORT).show());
+                    final int code = responseCode;
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "No updates found or server error (" + code + ")", Toast.LENGTH_SHORT).show());
                 }
             } catch (Exception e) {
                 if (manual) {
