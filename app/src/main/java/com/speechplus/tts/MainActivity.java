@@ -4,16 +4,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,12 +25,10 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String CURRENT_VERSION = "1.2.1";
+    public static final String CURRENT_VERSION = "1.2.0";
     private static final String REPO_RELEASES_URL = "https://api.github.com/repos/parasyadav75963-eng/Speech-Plus-tts/releases/latest";
 
-    private Spinner spinnerLanguages, spinnerEngines, spinnerVoices;
-    private SeekBar seekRate, seekPitch;
-    private TextView lblRate, lblPitch;
+    private Spinner spinnerLanguages;
     private SharedPreferences prefs;
 
     private final String[] modes = {"Single Language Mode", "Dual Language Mode", "Mix Mode (Auto Detect)"};
@@ -46,13 +41,6 @@ public class MainActivity extends AppCompatActivity {
         prefs = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
 
         spinnerLanguages = findViewById(R.id.spinnerLanguages);
-        spinnerEngines = findViewById(R.id.spinnerEngines);
-        spinnerVoices = findViewById(R.id.spinnerVoices);
-        seekRate = findViewById(R.id.seekRate);
-        seekPitch = findViewById(R.id.seekPitch);
-        lblRate = findViewById(R.id.lblRate);
-        lblPitch = findViewById(R.id.lblPitch);
-
         if (spinnerLanguages != null) {
             ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, modes);
             spinnerLanguages.setAdapter(modeAdapter);
