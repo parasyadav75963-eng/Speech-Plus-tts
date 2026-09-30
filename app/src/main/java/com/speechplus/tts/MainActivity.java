@@ -16,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -27,6 +28,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private TextToSpeech tts;
+    private TextToSpeech engineQueryHelper;
     private Spinner spinnerLanguages, spinnerEngines, spinnerVoices, spinnerAudioRouting;
     private SeekBar seekRate, seekPitch, seekVolume;
     private TextView lblRate, lblPitch, lblVolume;
@@ -58,7 +60,11 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private final String[] routingOptions = {
-        "Accessibility (TalkBack Stream)", "Media Stream", "Notification Stream", "Alarm Stream", "Ring Stream"
+        "Accessibility (TalkBack Stream)",
+        "Media Stream",
+        "Notification Stream",
+        "Alarm Stream",
+        "Ring Stream"
     };
 
     @Override
@@ -86,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
         loadEngines();
         checkForUpdates(false);
     }
+
     private void loadSettings() {
         float r = prefs.getFloat("rate", 1.0f);
         float p = prefs.getFloat("pitch", 1.0f);
@@ -116,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
             ed.putInt("lang_pos", spinnerLanguages.getSelectedItemPosition());
             ed.putString("lang_code", languageCodes[spinnerLanguages.getSelectedItemPosition()]);
             ed.putInt("route_pos", spinnerAudioRouting.getSelectedItemPosition());
+
             if (!enginesList.isEmpty() && spinnerEngines.getSelectedItem() != null) {
                 ed.putString("selected_engine", enginesList.get(spinnerEngines.getSelectedItemPosition()).name);
             }
@@ -132,33 +140,39 @@ public class MainActivity extends AppCompatActivity {
 
         spinnerEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-                if (!enginesList.isEmpty()) initEngine(enginesList.get(pos).name);
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!enginesList.isEmpty()) {
+                    initEngine(enginesList.get(position).name);
+                }
             }
-            @Override public void onNothingSelected(AdapterView<?> p) {}
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         spinnerLanguages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> p, View v, int pos, long id) { populateVoices(); }
-            @Override public void onNothingSelected(AdapterView<?> p) {}
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                populateVoices();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
     private void loadEngines() {
-        TextToSpeech helper = new TextToSpeech(this, null);
-            if (status == TextToSpeech.SUCCESS) {
-                enginesList = helper.getEngines();
+        engineQueryHelper = new TextToSpeech(getApplicationContext(), status -> {
+            if (status == TextToSpeech.SUCCESS && engineQueryHelper != null) {
+                enginesList = engineQueryHelper.getEngines();
                 List<String> labels = new ArrayList<>();
                 int sel = 0;
                 String saved = prefs.getString("selected_engine", "");
-                for (int i = 0; i < enginesList.size(); i++) {
-                    labels.add(enginesList.get(i).label);
-                    if (enginesList.get(i).name.equals(saved)) sel = i;
+                if (enginesList != null) {
+                    for (int i = 0; i < enginesList.size(); i++) {
+                        labels.add(enginesList.get(i).label);
+                        if (enginesList.get(i).name.equals(saved)) sel = i;
+                    }
                 }
                 spinnerEngines.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, labels));
                 if (!labels.isEmpty()) spinnerEngines.setSelection(sel);
-                helper.shutdown();
+                engineQueryHelper.shutdown();
                 initEngine(saved.isEmpty() ? null : saved);
             }
         });
@@ -178,34 +192,47 @@ public class MainActivity extends AppCompatActivity {
         if (tts == null) return;
         try {
             int langPos = spinnerLanguages.getSelectedItemPosition();
-            Locale targetLocale = Locale.forLanguageTag(languageCodes[langPos]);
+            String code = languageCodes[langPos];
+            Locale targetLocale = Locale.forLanguageTag(code);
             currentVoices.clear();
             List<String> voiceLabels = new ArrayList<>();
             String savedVoice = prefs.getString("selected_voice", "");
             int sel = 0;
+
             if (tts.getVoices() != null) {
                 for (Voice v : tts.getVoices()) {
                     if (v.getLocale().getLanguage().equals(targetLocale.getLanguage())) {
                         currentVoices.add(v);
                         voiceLabels.add(v.getName());
-                        if (v.getName().equals(savedVoice)) sel = voiceLabels.size() - 1;
+                        if (v.getName().equals(savedVoice)) {
+                            sel = voiceLabels.size() - 1;
+                        }
                     }
                 }
             }
-            if (voiceLabels.isEmpty()) voiceLabels.add("Default Voice");
-            spinnerVoices.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, voiceLabels));
+
+            if (voiceLabels.isEmpty()) {
+                voiceLabels.add("Default Voice");
+            }
+            ArrayAdapter<String> vAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, voiceLabels);
+            spinnerVoices.setAdapter(vAdapter);
             spinnerVoices.setSelection(sel);
         } catch (Exception ignored) {}
     }
 
     private void applyParams() {
         if (tts == null) return;
-        tts.setLanguage(Locale.forLanguageTag(languageCodes[spinnerLanguages.getSelectedItemPosition()]));
+        String code = languageCodes[spinnerLanguages.getSelectedItemPosition()];
+        tts.setLanguage(Locale.forLanguageTag(code));
         tts.setSpeechRate(prefs.getFloat("rate", 1.0f));
         tts.setPitch(prefs.getFloat("pitch", 1.0f));
+
         if (!currentVoices.isEmpty() && spinnerVoices.getSelectedItemPosition() < currentVoices.size()) {
-            try { tts.setVoice(currentVoices.get(spinnerVoices.getSelectedItemPosition())); } catch (Exception ignored) {}
+            try {
+                tts.setVoice(currentVoices.get(spinnerVoices.getSelectedItemPosition()));
+            } catch (Exception ignored) {}
         }
+
         int route = prefs.getInt("route_pos", 0);
         AudioAttributes.Builder ab = new AudioAttributes.Builder();
         if (route == 0) ab.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
@@ -241,9 +268,11 @@ public class MainActivity extends AppCompatActivity {
                     String line;
                     while ((line = reader.readLine()) != null) sb.append(line);
                     reader.close();
+
                     JSONObject json = new JSONObject(sb.toString());
                     String latestTag = json.optString("tag_name", "").replace("v", "");
                     String downloadUrl = json.optString("html_url", "");
+
                     if (!latestTag.isEmpty() && !latestTag.equals(CURRENT_VERSION)) {
                         runOnUiThread(() -> showUpdateDialog(latestTag, downloadUrl));
                     } else if (manual) {
@@ -253,7 +282,9 @@ public class MainActivity extends AppCompatActivity {
                     runOnUiThread(() -> Toast.makeText(MainActivity.this, "No new update found.", Toast.LENGTH_SHORT).show());
                 }
             } catch (Exception e) {
-                if (manual) runOnUiThread(() -> Toast.makeText(MainActivity.this, "Could not check update.", Toast.LENGTH_SHORT).show());
+                if (manual) {
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Could not check update. Try later.", Toast.LENGTH_SHORT).show());
+                }
             }
         }).start();
     }
@@ -261,8 +292,11 @@ public class MainActivity extends AppCompatActivity {
     private void showUpdateDialog(String newVersion, String url) {
         new AlertDialog.Builder(this)
                 .setTitle("Update Available!")
-                .setMessage("Version " + newVersion + " is available. Update now?")
-                .setPositiveButton("UPDATE NOW", (dialog, which) -> startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url))))
+                .setMessage("A new version (v" + newVersion + ") is available. Update now to get latest features?")
+                .setPositiveButton("UPDATE NOW", (dialog, which) -> {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(browserIntent);
+                })
                 .setNegativeButton("LATER", null)
                 .show();
     }
@@ -270,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (tts != null) { tts.stop(); tts.shutdown(); }
+        if (engineQueryHelper != null) { engineQueryHelper.shutdown(); }
         super.onDestroy();
     }
 
