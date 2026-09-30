@@ -1,7 +1,9 @@
 package com.speechplus.tts;
 
 import android.content.SharedPreferences;
-import android.media.AudioFormat;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.os.Bundle;
 import android.speech.tts.SynthesisCallback;
 import android.speech.tts.SynthesisRequest;
 import android.speech.tts.TextToSpeech;
@@ -25,6 +27,11 @@ public class SpeechPlusService extends TextToSpeechService {
         internalTts = new TextToSpeech(getApplicationContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
                 isInitialized = true;
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build();
+                internalTts.setAudioAttributes(audioAttributes);
             }
         });
     }
@@ -45,7 +52,7 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override
     protected String[] onGetLanguage() {
-        return new String[]{"eng", "USA", ""};
+        return new String[]{"hin", "IND", ""};
     }
 
     @Override
@@ -58,14 +65,6 @@ public class SpeechPlusService extends TextToSpeechService {
         if (internalTts != null) {
             internalTts.stop();
         }
-    }
-
-    @Override
-    public List<Voice> onGetVoices() {
-        List<Voice> voices = new ArrayList<>();
-        Set<String> features = new HashSet<>();
-        voices.add(new Voice("en-us-speechplus", Locale.US, Voice.QUALITY_NORMAL, Voice.LATENCY_NORMAL, false, features));
-        return voices;
     }
 
     @Override
@@ -97,11 +96,11 @@ public class SpeechPlusService extends TextToSpeechService {
         if (internalTts != null && isInitialized) {
             internalTts.setSpeechRate(rate);
             internalTts.setPitch(pitch);
-            internalTts.speak(text.toString(), TextToSpeech.QUEUE_FLUSH, null, "synth_" + System.currentTimeMillis());
-        }
 
-        // TalkBack को फीडबैक पूरा करने का सिग्नल दें
-        callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1);
-        callback.done();
+            Bundle params = new Bundle();
+            params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_ACCESSIBILITY);
+
+            internalTts.speak(text.toString(), TextToSpeech.QUEUE_FLUSH, params, "synth_" + System.currentTimeMillis());
+        }
     }
 }

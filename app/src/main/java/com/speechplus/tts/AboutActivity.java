@@ -1,29 +1,29 @@
 package com.speechplus.tts;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class AboutActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_about);
-
-        Button btnSend = findViewById(R.id.btnSendFeedback);
-        Button btnBack = findViewById(R.id.btnBack);
-
-        btnSend.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.parse("mailto:contact.itfb@gmail.com"));
-            intent.putExtra(Intent.EXTRA_SUBJECT, "Speech Plus TTS Feedback");
-            try {
-                startActivity(Intent.createChooser(intent, "Send Email..."));
-            } catch (Exception ignored) {}
-        });
-
-        btnBack.setOnClickListener(v -> finish());
+        
+        TextView tv = new TextView(this);
+        tv.setTextSize(18);
+        tv.setPadding(32, 32, 32, 32);
+        
+        String info = "Speech Plus TTS Engine\n\n"
+                    + "Version: 1.1.0\n"
+                    + "Last Updated: September 2026\n\n"
+                    + "About Interested Technology for Blind:\n"
+                    + "Interested Technology for Blind दृष्टिबाधित व्यक्तियों को सशक्त बनाने और डिजिटल तकनीक को पूरी तरह सुलभ (Accessible) बनाने के लिए समर्पित एक मंच है।\n\n"
+                    + "Features:\n"
+                    + "- Accessibility Audio Routing Support\n"
+                    + "- TalkBack Optimized Speech Output\n"
+                    + "- Smooth Voice Switching";
+                    
+        tv.setText(info);
+        setContentView(tv);
     }
 }

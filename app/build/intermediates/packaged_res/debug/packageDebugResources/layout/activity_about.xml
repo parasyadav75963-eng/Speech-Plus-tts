@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:padding="20dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Speech Plus TTS Engine"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="App Developer:"
+            android:textColor="#80CBC4"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Paras Yadav"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Credits:"
+            android:textColor="#80CBC4"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Interested Technology For Blind"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Feedback Email:"
+            android:textColor="#80CBC4"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="contact.itfb@gmail.com"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp" />
+        <Button
+            android:id="@+id/btnSendFeedback"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="SEND FEEDBACK"
+            android:backgroundTint="#00897B"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="12dp" />
+        <Button
+            android:id="@+id/btnBack"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="BACK"
+            android:backgroundTint="#424242"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+</ScrollView>

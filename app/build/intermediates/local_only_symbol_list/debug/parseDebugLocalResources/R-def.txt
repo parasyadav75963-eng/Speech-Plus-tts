@@ -1,0 +1,23 @@
+R_DEF: Internal format may change without notice
+local
+id btnAbout
+id btnBack
+id btnCheckUpdate
+id btnSaveSettings
+id btnSendFeedback
+id btnStopSpeaking
+id btnTestVoice
+id lblPitch
+id lblRate
+id lblVolume
+id seekPitch
+id seekRate
+id seekVolume
+id spinnerAudioRouting
+id spinnerEngines
+id spinnerLanguages
+id spinnerVoices
+layout activity_about
+layout activity_main
+string app_name
+xml tts_engine

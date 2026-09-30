@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/xml_tts_engine.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/xml/tts_engine.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/layout_activity_main.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/layout_activity_about.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/layout/activity_about.xml"
+    }
+]
