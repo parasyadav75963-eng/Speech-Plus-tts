@@ -1,10 +1,21 @@
-name: Build APK
-on: [push]
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -18,10 +29,31 @@ jobs:
           gradle-version: '8.4'
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Rename APK
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.2.0.apk
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SpeechPlusTTS-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: SpeechPlusTTS-v1.2.0.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.2.0
+          name: "Speech Plus TTS v1.2.0"
+          body: |
+            ### Speech Plus TTS Engine v1.2.0
+            - Fixed accessibility audio stream routing
+            - Added TalkBack speech rate sync
+            - Fixed character-by-character typing reading
+            - Added dynamic voice and language support
+            - Updated About section with contact and social links
+          files: SpeechPlusTTS-v1.2.0.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
