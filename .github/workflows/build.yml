@@ -7,12 +7,10 @@ on:
     tags:
       - 'v*'
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -33,26 +31,27 @@ jobs:
 
       - name: Prepare APK
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.2.1.apk
+          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.2.2.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SpeechPlusTTS-v1.2.1-APK
-          path: SpeechPlusTTS-v1.2.1.apk
+          name: SpeechPlusTTS-v1.2.2-APK
+          path: SpeechPlusTTS-v1.2.2.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.2.1
-          name: "Speech Plus TTS v1.2.1"
+          tag_name: v1.2.2
+          name: "Speech Plus TTS v1.2.2"
           body: |
-            ### Speech Plus TTS v1.2.1 Release
-            - Added Mode Selection (Single, Dual Language, Mix Mode)
-            - Added Force Speech Rate & Force Pitch customization
-            - Fixed character-by-character typing echo (spelling reading)
-            - Revamped About screen with buttons and official contact email
-          files: SpeechPlusTTS-v1.2.1.apk
+            ### Speech Plus TTS v1.2.2 Release
+            - Added Audio Routing Stream (Media vs TalkBack Accessibility)
+            - Added Keep-Alive Mode (Prevents background service killing)
+            - Added Amplify Speech Volume (Boost output)
+            - Added In-App Automatic Updater & Direct APK Installer
+            - Optimized Smart Dual/Mixed Engine switching latency
+          files: SpeechPlusTTS-v1.2.2.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
