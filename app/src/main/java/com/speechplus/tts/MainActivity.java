@@ -1,26 +1,44 @@
 package com.speechplus.tts;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
+import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.PopupMenu;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -31,359 +49,857 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final int REQ_VOICE_SEARCH = 101;
+    private static final int REQ_RECORD_AUDIO = 102;
+    private static final String PREFS_NAME = "SpeechPlusPrefs";
+
     private SharedPreferences prefs;
-    private Spinner spinnerModes, spinnerEngines, spinnerSecondaryEngines, spinnerAudioRouting;
+
+    // Search bar views
+    private EditText edtSearch;
+    private ImageButton btnClearSearch;
+    private ImageButton btnVoiceSearch;
+
+    // 5 Tab containers
+    private ScrollView tabModes;
+    private ScrollView tabLanguages;
+    private ScrollView tabVoices;
+    private ScrollView tabAdvanced;
+    private ScrollView tabMore;
+    private BottomNavigationView bottomNav;
+
+    // Tab 1 (Modes) views
+    private Spinner spinnerModes;
+    private Spinner spinnerEngines;
+    private Spinner spinnerSecondaryEngines;
     private LinearLayout layoutSecondary;
-    private CheckBox chkAmplifyVolume, chkKeepAlive, chkForceRate, chkForcePitch;
-    private SeekBar seekRate, seekPitch;
-    private TextView lblRate, lblPitch;
-    private Button btnTestVoice, btnStopSpeaking, btnCheckUpdate, btnMoreOptions;
-    private TextToSpeech testTts;
-    private List<TextToSpeech.EngineInfo> enginesList = new ArrayList<>();
-    private static final String CURRENT_VERSION = "1.3.0";
+    private Button btnTestVoice;
+    private Button btnStopSpeaking;
+
+    // Tab 2 (Languages) views
+    private Button btnSelectAllLangs;
+    private Button btnClearAllLangs;
+    private LinearLayout layoutLanguagesList;
+
+    // Tab 3 (Voices) views
+    private Spinner spinnerVoiceLanguage;
+    private Spinner spinnerVoiceEngine;
+    private Spinner spinnerVoiceVariant;
+    private TextView lblVoicesRate;
+    private SeekBar seekVoiceRate;
+    private Button btnRateMinus;
+    private Button btnRatePlus;
+    private TextView lblVoicesPitch;
+    private SeekBar seekVoicePitch;
+    private Button btnPitchMinus;
+    private Button btnPitchPlus;
+    private TextView lblVoicesVolume;
+    private SeekBar seekVoiceVolume;
+    private Button btnTestVoiceSingle;
+    private Button btnDefaultVoice;
+    private Button btnSaveVoiceSettings;
+    private LinearLayout layoutConfiguredLanguages;
+
+    // Tab 4 (Advanced) views
+    private Spinner spinnerAudioRouting;
+    private CheckBox chkAmplifyVolume;
+    private CheckBox chkKeepAlive;
+    private CheckBox chkForceRate;
+    private CheckBox chkForcePitch;
+    private CheckBox chkStripAttributes;
+    private CheckBox chkQuickChar;
+    private Button btnIgnoreBattery;
+
+    // Tab 5 (More) views
+    private Button btnOpenSystemTts;
+    private Button btnCheckUpdateMore;
+    private Button btnOpenAboutPage;
+
+    // Engines & Language data
+    public static class EngineInfo {
+        public String name;
+        public String label;
+        public EngineInfo(String n, String l) { name = n; label = l; }
+        public String toString() { return label; }
+    }
+
+    public static class LangItem {
+        public String code;
+        public String displayName;
+        public LangItem(String c, String d) { code = c; displayName = d; }
+        public String toString() { return displayName; }
+    }
+
+    private List<EngineInfo> installedEngines = new ArrayList<>();
+    private List<LangItem> globalLanguages = new ArrayList<>();
+    private TextToSpeech previewTts = null;
+    private TextToSpeech activeVoiceTestTts = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        prefs = getSharedPreferences("SpeechPlusPrefs", MODE_PRIVATE);
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
+        initViews();
+        setupSearchAndVoice();
+        setupBottomNavigation();
+        loadEngines();
+        loadGlobalLanguages();
+
+        setupTabModes();
+        setupTabLanguages();
+        setupTabVoices();
+        setupTabAdvanced();
+        setupTabMore();
+    }
+
+    private void initViews() {
+        edtSearch = findViewById(R.id.edtSearch);
+        btnClearSearch = findViewById(R.id.btnClearSearch);
+        btnVoiceSearch = findViewById(R.id.btnVoiceSearch);
+
+        tabModes = findViewById(R.id.tabModes);
+        tabLanguages = findViewById(R.id.tabLanguages);
+        tabVoices = findViewById(R.id.tabVoices);
+        tabAdvanced = findViewById(R.id.tabAdvanced);
+        tabMore = findViewById(R.id.tabMore);
+        bottomNav = findViewById(R.id.bottomNavigation);
+
+        // Modes
         spinnerModes = findViewById(R.id.spinnerModes);
         spinnerEngines = findViewById(R.id.spinnerEngines);
         spinnerSecondaryEngines = findViewById(R.id.spinnerSecondaryEngines);
-        spinnerAudioRouting = findViewById(R.id.spinnerAudioRouting);
         layoutSecondary = findViewById(R.id.layoutSecondary);
+        btnTestVoice = findViewById(R.id.btnTestVoice);
+        btnStopSpeaking = findViewById(R.id.btnStopSpeaking);
+
+        // Languages
+        btnSelectAllLangs = findViewById(R.id.btnSelectAllLangs);
+        btnClearAllLangs = findViewById(R.id.btnClearAllLangs);
+        layoutLanguagesList = findViewById(R.id.layoutLanguagesList);
+
+        // Voices
+        spinnerVoiceLanguage = findViewById(R.id.spinnerVoiceLanguage);
+        spinnerVoiceEngine = findViewById(R.id.spinnerVoiceEngine);
+        spinnerVoiceVariant = findViewById(R.id.spinnerVoiceVariant);
+        lblVoicesRate = findViewById(R.id.lblVoicesRate);
+        seekVoiceRate = findViewById(R.id.seekVoiceRate);
+        btnRateMinus = findViewById(R.id.btnRateMinus);
+        btnRatePlus = findViewById(R.id.btnRatePlus);
+        lblVoicesPitch = findViewById(R.id.lblVoicesPitch);
+        seekVoicePitch = findViewById(R.id.seekVoicePitch);
+        btnPitchMinus = findViewById(R.id.btnPitchMinus);
+        btnPitchPlus = findViewById(R.id.btnPitchPlus);
+        lblVoicesVolume = findViewById(R.id.lblVoicesVolume);
+        seekVoiceVolume = findViewById(R.id.seekVoiceVolume);
+        btnTestVoiceSingle = findViewById(R.id.btnTestVoiceSingle);
+        btnDefaultVoice = findViewById(R.id.btnDefaultVoice);
+        btnSaveVoiceSettings = findViewById(R.id.btnSaveVoiceSettings);
+        layoutConfiguredLanguages = findViewById(R.id.layoutConfiguredLanguages);
+
+        // Advanced
+        spinnerAudioRouting = findViewById(R.id.spinnerAudioRouting);
         chkAmplifyVolume = findViewById(R.id.chkAmplifyVolume);
         chkKeepAlive = findViewById(R.id.chkKeepAlive);
         chkForceRate = findViewById(R.id.chkForceRate);
         chkForcePitch = findViewById(R.id.chkForcePitch);
-        seekRate = findViewById(R.id.seekRate);
-        seekPitch = findViewById(R.id.seekPitch);
-        lblRate = findViewById(R.id.lblRate);
-        lblPitch = findViewById(R.id.lblPitch);
-        btnTestVoice = findViewById(R.id.btnTestVoice);
-        btnStopSpeaking = findViewById(R.id.btnStopSpeaking);
-        btnCheckUpdate = findViewById(R.id.btnCheckUpdate);
-        btnMoreOptions = findViewById(R.id.btnMoreOptions);
+        chkStripAttributes = findViewById(R.id.chkStripAttributes);
+        chkQuickChar = findViewById(R.id.chkQuickChar);
+        btnIgnoreBattery = findViewById(R.id.btnIgnoreBattery);
 
-        setupModes();
-        setupAudioRouting();
-        setupSwitches();
-        setupSeekBars();
-        loadAvailableEngines();
-
-        btnMoreOptions.setOnClickListener(v -> showMoreOptionsMenu(v));
-        btnCheckUpdate.setOnClickListener(v -> checkForUpdatesDirect());
-        btnTestVoice.setOnClickListener(v -> testSpeechOutput());
-        btnStopSpeaking.setOnClickListener(v -> {
-            if (testTts != null) testTts.stop();
+        // More
+        btnOpenSystemTts = findViewById(R.id.btnOpenSystemTts);
+        btnCheckUpdateMore = findViewById(R.id.btnCheckUpdateMore);
+        btnOpenAboutPage = findViewById(R.id.btnOpenAboutPage);
+    }
+    private void setupBottomNavigation() {
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            tabModes.setVisibility(id == R.id.nav_modes ? View.VISIBLE : View.GONE);
+            tabLanguages.setVisibility(id == R.id.nav_languages ? View.VISIBLE : View.GONE);
+            tabVoices.setVisibility(id == R.id.nav_voices ? View.VISIBLE : View.GONE);
+            tabAdvanced.setVisibility(id == R.id.nav_advanced ? View.VISIBLE : View.GONE);
+            tabMore.setVisibility(id == R.id.nav_more ? View.VISIBLE : View.GONE);
+            return true;
         });
     }
 
-    private void setupModes() {
-        String[] modes = {"Single Engine Mode", "Dual Language Mode (Latin & Regional)", "Mixed Language Mode (Fast Auto Detect)"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, modes);
-        spinnerModes.setAdapter(adapter);
+    private void setupSearchAndVoice() {
+        edtSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String q = s.toString().trim().toLowerCase(Locale.ROOT);
+                btnClearSearch.setVisibility(q.isEmpty() ? View.GONE : View.VISIBLE);
+                filterCurrentTab(q);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        btnClearSearch.setOnClickListener(v -> {
+            edtSearch.setText("");
+            filterCurrentTab("");
+        });
+
+        btnVoiceSearch.setOnClickListener(v -> startVoiceSearch());
+    }
+
+    private void startVoiceSearch() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, REQ_RECORD_AUDIO);
+            return;
+        }
+
+        try {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak language or setting name...");
+            startActivityForResult(intent, REQ_VOICE_SEARCH);
+        } catch (Exception e) {
+            Toast.makeText(this, "Speech recognition not available on this device", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_RECORD_AUDIO) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startVoiceSearch();
+            } else {
+                Toast.makeText(this, "Microphone permission is needed for voice search", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_VOICE_SEARCH && resultCode == RESULT_OK && data != null) {
+            ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            if (matches != null && !matches.isEmpty()) {
+                String spoken = matches.get(0);
+                edtSearch.setText(spoken);
+                filterCurrentTab(spoken.toLowerCase(Locale.ROOT));
+            }
+        }
+    }
+
+    private void filterCurrentTab(String query) {
+        int childCount = layoutLanguagesList.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View v = layoutLanguagesList.getChildAt(i);
+            if (v instanceof CheckBox) {
+                CheckBox cb = (CheckBox) v;
+                String text = cb.getText().toString().toLowerCase(Locale.ROOT);
+                cb.setVisibility(query.isEmpty() || text.contains(query) ? View.VISIBLE : View.GONE);
+            }
+        }
+
+        int confCount = layoutConfiguredLanguages.getChildCount();
+        for (int i = 0; i < confCount; i++) {
+            View v = layoutConfiguredLanguages.getChildAt(i);
+            if (v instanceof TextView) {
+                TextView tv = (TextView) v;
+                String text = tv.getText().toString().toLowerCase(Locale.ROOT);
+                tv.setVisibility(query.isEmpty() || text.contains(query) ? View.VISIBLE : View.GONE);
+            }
+        }
+    }
+
+    private void loadEngines() {
+        installedEngines.clear();
+        Intent intent = new Intent("android.intent.action.TTS_SERVICE");
+        List<ResolveInfo> resolveInfos = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (resolveInfos.isEmpty()) {
+            resolveInfos = getPackageManager().queryIntentServices(intent, 0);
+        }
+
+        for (ResolveInfo ri : resolveInfos) {
+            String pkg = ri.serviceInfo != null ? ri.serviceInfo.packageName : (ri.activityInfo != null ? ri.activityInfo.packageName : null);
+            if (pkg == null) continue;
+            String label = ri.loadLabel(getPackageManager()).toString();
+            installedEngines.add(new EngineInfo(pkg, label));
+        }
+
+        if (installedEngines.isEmpty()) {
+            installedEngines.add(new EngineInfo("com.google.android.tts", "Google Text-to-speech Engine"));
+        }
+    }
+
+    private void loadGlobalLanguages() {
+        globalLanguages.clear();
+        Locale[] locales = Locale.getAvailableLocales();
+        Map<String, LangItem> map = new HashMap<>();
+
+        for (Locale loc : locales) {
+            String code = loc.getLanguage();
+            if (code == null || code.length() < 2) continue;
+            String disp = loc.getDisplayName(Locale.ENGLISH);
+            if (!disp.isEmpty() && !map.containsKey(disp)) {
+                map.put(disp, new LangItem(loc.toLanguageTag(), disp));
+            }
+        }
+
+        globalLanguages.addAll(map.values());
+        Collections.sort(globalLanguages, (a, b) -> a.displayName.compareToIgnoreCase(b.displayName));
+    }
+    private void setupTabModes() {
+        String[] modes = {"Mode 0: Single Engine Mode", "Mode 1: Auto Detect Language Mode", "Mode 2: Mixed Regional / Dual Mode"};
+        ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, modes);
+        spinnerModes.setAdapter(modeAdapter);
         int savedMode = prefs.getInt("tts_mode", 0);
-        spinnerModes.setSelection(savedMode);
+        spinnerModes.setSelection(Math.min(savedMode, modes.length - 1));
 
         spinnerModes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 prefs.edit().putInt("tts_mode", position).apply();
-                layoutSecondary.setVisibility(position > 0 ? View.VISIBLE : View.GONE);
+                layoutSecondary.setVisibility(position == 2 ? View.VISIBLE : View.GONE);
             }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
+
+        ArrayAdapter<EngineInfo> engAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, installedEngines);
+        spinnerEngines.setAdapter(engAdapter);
+        spinnerSecondaryEngines.setAdapter(engAdapter);
+
+        String pSaved = prefs.getString("primary_engine", prefs.getString("selected_engine", ""));
+        String sSaved = prefs.getString("secondary_engine", "");
+
+        for (int i = 0; i < installedEngines.size(); i++) {
+            if (installedEngines.get(i).name.equals(pSaved)) spinnerEngines.setSelection(i);
+            if (installedEngines.get(i).name.equals(sSaved)) spinnerSecondaryEngines.setSelection(i);
+        }
+
+        spinnerEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String pkg = installedEngines.get(position).name;
+                prefs.edit().putString("primary_engine", pkg).putString("selected_engine", pkg).apply();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        spinnerSecondaryEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String pkg = installedEngines.get(position).name;
+                prefs.edit().putString("secondary_engine", pkg).apply();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        btnTestVoice.setOnClickListener(v -> testSpeak("Speech Plus TTS. Welcome to Zero-Lag High Quality Experience."));
+        btnStopSpeaking.setOnClickListener(v -> stopSpeaking());
     }
 
-    private void setupAudioRouting() {
-        String[] streams = {"Media Audio Stream", "Accessibility Audio Stream (TalkBack Priority)"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, streams);
-        spinnerAudioRouting.setAdapter(adapter);
-        spinnerAudioRouting.setSelection(prefs.getInt("audio_routing", 0));
+    private void setupTabLanguages() {
+        layoutLanguagesList.removeAllViews();
+        Set<String> enabledLangs = prefs.getStringSet("enabled_languages", null);
+        if (enabledLangs == null) {
+            enabledLangs = new HashSet<>();
+            for (LangItem item : globalLanguages) {
+                enabledLangs.add(item.code);
+            }
+            prefs.edit().putStringSet("enabled_languages", enabledLangs).apply();
+        }
+
+        for (LangItem item : globalLanguages) {
+            CheckBox cb = new CheckBox(this);
+            cb.setText(item.displayName);
+            cb.setTextColor(0xFFFFFFFF);
+            cb.setTextSize(15f);
+            cb.setChecked(enabledLangs.contains(item.code));
+            cb.setOnCheckedChangeListener((btn, isChecked) -> {
+                Set<String> set = new HashSet<>(prefs.getStringSet("enabled_languages", new HashSet<>()));
+                if (isChecked) set.add(item.code);
+                else set.remove(item.code);
+                prefs.edit().putStringSet("enabled_languages", set).apply();
+            });
+            layoutLanguagesList.addView(cb);
+        }
+
+        btnSelectAllLangs.setOnClickListener(v -> {
+            Set<String> all = new HashSet<>();
+            int count = layoutLanguagesList.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = layoutLanguagesList.getChildAt(i);
+                if (child instanceof CheckBox) {
+                    ((CheckBox) child).setChecked(true);
+                }
+            }
+            for (LangItem it : globalLanguages) all.add(it.code);
+            prefs.edit().putStringSet("enabled_languages", all).apply();
+            Toast.makeText(this, "All languages selected", Toast.LENGTH_SHORT).show();
+        });
+
+        btnClearAllLangs.setOnClickListener(v -> {
+            int count = layoutLanguagesList.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = layoutLanguagesList.getChildAt(i);
+                if (child instanceof CheckBox) {
+                    ((CheckBox) child).setChecked(false);
+                }
+            }
+            prefs.edit().putStringSet("enabled_languages", new HashSet<>()).apply();
+            Toast.makeText(this, "All languages cleared", Toast.LENGTH_SHORT).show();
+        });
+    }
+    private void setupTabVoices() {
+        ArrayAdapter<LangItem> langAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, globalLanguages);
+        spinnerVoiceLanguage.setAdapter(langAdapter);
+
+        ArrayAdapter<EngineInfo> engAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, installedEngines);
+        spinnerVoiceEngine.setAdapter(engAdapter);
+
+        spinnerVoiceEngine.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                initPreviewEngine(installedEngines.get(position).name);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        seekVoiceRate.setMax(100);
+        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 50));
+        updateRateLabel();
+
+        seekVoiceRate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                prefs.edit().putInt("voice_tab_rate_progress", progress).apply();
+                updateRateLabel();
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        btnRateMinus.setOnClickListener(v -> {
+            int p = Math.max(0, seekVoiceRate.getProgress() - 5);
+            seekVoiceRate.setProgress(p);
+        });
+
+        btnRatePlus.setOnClickListener(v -> {
+            int p = Math.min(100, seekVoiceRate.getProgress() + 5);
+            seekVoiceRate.setProgress(p);
+        });
+
+        seekVoicePitch.setMax(100);
+        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 50));
+        updatePitchLabel();
+
+        seekVoicePitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                prefs.edit().putInt("voice_tab_pitch_progress", progress).apply();
+                updatePitchLabel();
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        btnPitchMinus.setOnClickListener(v -> {
+            int p = Math.max(0, seekVoicePitch.getProgress() - 5);
+            seekVoicePitch.setProgress(p);
+        });
+
+        btnPitchPlus.setOnClickListener(v -> {
+            int p = Math.min(100, seekVoicePitch.getProgress() + 5);
+            seekVoicePitch.setProgress(p);
+        });
+
+        seekVoiceVolume.setMax(100);
+        seekVoiceVolume.setProgress(prefs.getInt("voice_tab_volume", 100));
+        lblVoicesVolume.setText("Voice Volume: " + seekVoiceVolume.getProgress() + "%");
+        seekVoiceVolume.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                prefs.edit().putInt("voice_tab_volume", progress).apply();
+                lblVoicesVolume.setText("Voice Volume: " + progress + "%");
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        btnDefaultVoice.setOnClickListener(v -> {
+            seekVoiceRate.setProgress(50);
+            seekVoicePitch.setProgress(50);
+            seekVoiceVolume.setProgress(100);
+            Toast.makeText(this, "Voice parameters reset to default 1.0x", Toast.LENGTH_SHORT).show();
+        });
+
+        btnTestVoiceSingle.setOnClickListener(v -> {
+            LangItem lang = (LangItem) spinnerVoiceLanguage.getSelectedItem();
+            String langName = lang != null ? lang.displayName : "this language";
+            testSpeak("Testing speech synthesis configuration for " + langName);
+        });
+
+        btnSaveVoiceSettings.setOnClickListener(v -> saveLanguageVoiceMapping());
+
+        refreshConfiguredLanguagesList();
+    }
+
+    private void updateRateLabel() {
+        float r = 0.5f + (seekVoiceRate.getProgress() / 100.0f) * 1.5f;
+        lblVoicesRate.setText(String.format(Locale.US, "Speech Rate: %.2fx", r));
+    }
+
+    private void updatePitchLabel() {
+        float p = 0.5f + (seekVoicePitch.getProgress() / 100.0f) * 1.5f;
+        lblVoicesPitch.setText(String.format(Locale.US, "Speech Pitch: %.2fx", p));
+    }
+
+    private void initPreviewEngine(String pkg) {
+        if (previewTts != null) {
+            try { previewTts.shutdown(); } catch (Exception ignored) {}
+        }
+
+        List<String> variants = new ArrayList<>();
+        variants.add("Default Voice");
+
+        previewTts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS && previewTts != null) {
+                try {
+                    Set<Voice> voices = previewTts.getVoices();
+                    if (voices != null) {
+                        for (Voice v : voices) {
+                            variants.add(v.getName());
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            runOnUiThread(() -> {
+                ArrayAdapter<String> varAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, variants);
+                spinnerVoiceVariant.setAdapter(varAdapter);
+            });
+        }, pkg);
+    }
+    private void saveLanguageVoiceMapping() {
+        LangItem selLang = (LangItem) spinnerVoiceLanguage.getSelectedItem();
+        EngineInfo selEng = (EngineInfo) spinnerVoiceEngine.getSelectedItem();
+        String selVar = spinnerVoiceVariant.getSelectedItem() != null ? spinnerVoiceVariant.getSelectedItem().toString() : "Default";
+
+        if (selLang == null || selEng == null) return;
+
+        float rate = 0.5f + (seekVoiceRate.getProgress() / 100.0f) * 1.5f;
+        float pitch = 0.5f + (seekVoicePitch.getProgress() / 100.0f) * 1.5f;
+        int vol = seekVoiceVolume.getProgress();
+
+        String mapKey = "lang_map_" + selLang.code;
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("lang_code", selLang.code);
+            obj.put("lang_name", selLang.displayName);
+            obj.put("engine_pkg", selEng.name);
+            obj.put("engine_label", selEng.label);
+            obj.put("voice_variant", selVar);
+            obj.put("rate", (double) rate);
+            obj.put("pitch", (double) pitch);
+            obj.put("volume", vol);
+            prefs.edit().putString(mapKey, obj.toString()).apply();
+
+            Set<String> savedKeys = new HashSet<>(prefs.getStringSet("configured_lang_keys", new HashSet<>()));
+            savedKeys.add(mapKey);
+            prefs.edit().putStringSet("configured_lang_keys", savedKeys).apply();
+
+            Toast.makeText(this, "Settings saved for " + selLang.displayName, Toast.LENGTH_SHORT).show();
+            refreshConfiguredLanguagesList();
+        } catch (Exception e) {
+            Toast.makeText(this, "Error saving settings", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void refreshConfiguredLanguagesList() {
+        layoutConfiguredLanguages.removeAllViews();
+        Set<String> savedKeys = prefs.getStringSet("configured_lang_keys", new HashSet<>());
+
+        if (savedKeys.isEmpty()) {
+            TextView tv = new TextView(this);
+            tv.setText("No specific language mappings saved yet. Global settings apply.");
+            tv.setTextColor(0xFF888888);
+            tv.setTextSize(13f);
+            tv.setPadding(0, 8, 0, 8);
+            layoutConfiguredLanguages.addView(tv);
+            return;
+        }
+
+        for (String k : savedKeys) {
+            String jsonStr = prefs.getString(k, "");
+            if (jsonStr.isEmpty()) continue;
+            try {
+                JSONObject o = new JSONObject(jsonStr);
+                String lName = o.getString("lang_name");
+                String eLabel = o.getString("engine_label");
+                double r = o.getDouble("rate");
+                double p = o.getDouble("pitch");
+
+                TextView item = new TextView(this);
+                item.setText(String.format(Locale.US, "• %s ➔ %s (Rate: %.2fx, Pitch: %.2fx)", lName, eLabel, r, p));
+                item.setTextColor(0xFF03DAC5);
+                item.setTextSize(14f);
+                item.setPadding(0, 6, 0, 6);
+                layoutConfiguredLanguages.addView(item);
+            } catch (Exception ignored) {}
+        }
+    }
+    private void setupTabAdvanced() {
+        String[] streams = {"0: Media Stream (STREAM_MUSIC)", "1: Accessibility Stream (STREAM_ACCESSIBILITY)"};
+        ArrayAdapter<String> streamAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, streams);
+        spinnerAudioRouting.setAdapter(streamAdapter);
+        int savedRouting = prefs.getInt("audio_routing", 0);
+        spinnerAudioRouting.setSelection(Math.min(savedRouting, streams.length - 1));
 
         spinnerAudioRouting.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 prefs.edit().putInt("audio_routing", position).apply();
             }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
-    }
 
-    private void setupSwitches() {
         chkAmplifyVolume.setChecked(prefs.getBoolean("amplify_volume", true));
-        chkAmplifyVolume.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("amplify_volume", isChecked).apply();
-        });
+        chkAmplifyVolume.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("amplify_volume", isChecked).apply());
 
         chkKeepAlive.setChecked(prefs.getBoolean("keep_alive", true));
-        chkKeepAlive.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("keep_alive", isChecked).apply();
-        });
+        chkKeepAlive.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("keep_alive", isChecked).apply());
+
         chkForceRate.setChecked(prefs.getBoolean("force_rate", true));
-        chkForceRate.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("force_rate", isChecked).apply();
-        });
+        chkForceRate.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("force_rate", isChecked).apply());
+
         chkForcePitch.setChecked(prefs.getBoolean("force_pitch", true));
-        chkForcePitch.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("force_pitch", isChecked).apply();
-        });
+        chkForcePitch.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("force_pitch", isChecked).apply());
+
+        chkStripAttributes.setChecked(prefs.getBoolean("strip_attributes", false));
+        chkStripAttributes.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("strip_attributes", isChecked).apply());
+
+        chkQuickChar.setChecked(prefs.getBoolean("quick_char", false));
+        chkQuickChar.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("quick_char", isChecked).apply());
+
+        btnIgnoreBattery.setOnClickListener(v -> requestIgnoreBatteryOptimization());
     }
 
-    private void setupSeekBars() {
-        int rVal = prefs.getInt("rate_progress", 50);
-        seekRate.setProgress(rVal);
-        float rCalc = 0.5f + (rVal / 50.0f);
-        lblRate.setText(String.format("Speech Rate: %.2fx", rCalc));
-
-        seekRate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
-                float rate = 0.5f + (p / 50.0f);
-                lblRate.setText(String.format("Speech Rate: %.2fx", rate));
-                prefs.edit().putInt("rate_progress", p).putFloat("rate", rate).apply();
+    private void requestIgnoreBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                try { startActivity(intent); } catch (Exception ignored) {}
+            } else {
+                Toast.makeText(this, "Battery is already unrestricted!", Toast.LENGTH_SHORT).show();
             }
-            @Override public void onStartTrackingTouch(SeekBar sb) {}
-            @Override public void onStopTrackingTouch(SeekBar sb) {}
-        });
-
-        int pVal = prefs.getInt("pitch_progress", 50);
-        seekPitch.setProgress(pVal);
-        float pCalc = 0.5f + (pVal / 100.0f);
-        lblPitch.setText(String.format("Pitch: %.2fx", pCalc));
-
-        seekPitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
-                float pitch = 0.5f + (p / 100.0f);
-                lblPitch.setText(String.format("Pitch: %.2fx", pitch));
-                prefs.edit().putInt("pitch_progress", p).putFloat("pitch", pitch).apply();
-            }
-            @Override public void onStartTrackingTouch(SeekBar sb) {}
-            @Override public void onStopTrackingTouch(SeekBar sb) {}
-        });
-    }
-
-    private void loadAvailableEngines() {
-        testTts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                enginesList = testTts.getEngines();
-                List<String> names = new ArrayList<>();
-                int savedPIdx = 0;
-                int savedSIdx = 0;
-                String pSaved = prefs.getString("selected_engine", "");
-                String sSaved = prefs.getString("secondary_engine", "");
-
-                for (int i = 0; i < enginesList.size(); i++) {
-                    names.add(enginesList.get(i).label);
-                    if (enginesList.get(i).name.equals(pSaved)) savedPIdx = i;
-                    if (enginesList.get(i).name.equals(sSaved)) savedSIdx = i;
-                }
-
-                ArrayAdapter<String> engAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, names);
-                spinnerEngines.setAdapter(engAdapter);
-                spinnerSecondaryEngines.setAdapter(engAdapter);
-
-                spinnerEngines.setSelection(savedPIdx);
-                spinnerSecondaryEngines.setSelection(savedSIdx);
-
-                spinnerEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-                        if (pos < enginesList.size()) {
-                            prefs.edit().putString("selected_engine", enginesList.get(pos).name).apply();
-                        }
-                    }
-                    @Override public void onNothingSelected(AdapterView<?> p) {}
-                });
-
-                spinnerSecondaryEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
-                        if (pos < enginesList.size()) {
-                            prefs.edit().putString("secondary_engine", enginesList.get(pos).name).apply();
-                        }
-                    }
-                    @Override public void onNothingSelected(AdapterView<?> p) {}
-                });
-            }
-        });
-    }
-
-    private void testSpeechOutput() {
-        if (testTts != null) {
-            float r = prefs.getFloat("rate", 1.0f);
-            float p = prefs.getFloat("pitch", 1.0f);
-            testTts.setSpeechRate(r);
-            testTts.setPitch(p);
-            testTts.speak("Speech Plus TTS is fully configured and ready for TalkBack.", TextToSpeech.QUEUE_FLUSH, null, "TestID");
         }
     }
 
-    private void showMoreOptionsMenu(View v) {
-        PopupMenu menu = new PopupMenu(this, v);
-        menu.getMenu().add("Text-to-Speech Settings");
-        menu.getMenu().add("Check for Updates");
-        menu.getMenu().add("Telegram Community");
-        menu.getMenu().add("About Speech Plus");
-
-        menu.setOnMenuItemClickListener(item -> {
-            String title = item.getTitle().toString();
-            if (title.equals("Text-to-Speech Settings")) {
-                startActivity(new Intent("com.android.settings.TTS_SETTINGS"));
-            } else if (title.equals("Check for Updates")) {
-                checkForUpdatesDirect();
-            } else if (title.equals("Telegram Community")) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/speechplus")));
-            } else if (title.equals("About Speech Plus")) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Speech Plus TTS")
-                        .setMessage("Version: " + CURRENT_VERSION + "\nDeveloper: Paras Yadav\nSmart Dual Engine and Audio Boost")
-                        .setPositiveButton("OK", null)
-                        .show();
+    private void setupTabMore() {
+        btnOpenSystemTts.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent("com.android.settings.TTS_SETTINGS");
+                startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "Unable to open system TTS settings", Toast.LENGTH_SHORT).show();
             }
-            return true;
         });
-        menu.show();
-    }
 
-    private void checkForUpdatesDirect() {
-        ProgressDialog progress = new ProgressDialog(this);
-        progress.setMessage("Checking for updates...");
-        progress.setCancelable(false);
-        progress.show();
+        btnCheckUpdateMore.setOnClickListener(v -> checkForUpdates());
+
+        btnOpenAboutPage.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+        });
+    }
+    private void checkForUpdates() {
+        ProgressDialog pd = new ProgressDialog(this);
+        pd.setMessage("Checking for updates...");
+        pd.show();
 
         new Thread(() -> {
             try {
-                URL url = new URL("https://api.github.com/repos/parasyadav75963-eng/Speech-Plus-tts/releases/latest");
+                URL url = new URL("https://api.github.com/repos/nitingautam3824/SpeechPlusTTS/releases/latest");
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
-                conn.setRequestProperty("User-Agent", "SpeechPlus-App");
-                conn.setConnectTimeout(8000);
+                conn.setRequestProperty("User-Agent", "SpeechPlusTTS-App");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
 
                 if (conn.getResponseCode() == 200) {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
-                    while ((line = reader.readLine()) != null) sb.append(line);
-                    reader.close();
+                    while ((line = br.readLine()) != null) sb.append(line);
+                    br.close();
 
                     JSONObject json = new JSONObject(sb.toString());
                     String latestTag = json.getString("tag_name").replace("v", "").trim();
-                    JSONArray assets = json.getJSONArray("assets");
-                    String downloadUrl = "";
+                    String currentVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
 
+                    String apkUrl = "";
+                    JSONArray assets = json.getJSONArray("assets");
                     for (int i = 0; i < assets.length(); i++) {
                         JSONObject a = assets.getJSONObject(i);
                         if (a.getString("name").endsWith(".apk")) {
-                            downloadUrl = a.getString("browser_download_url");
+                            apkUrl = a.getString("browser_download_url");
                             break;
                         }
                     }
 
-                    String finalUrl = downloadUrl;
+                    final String finalApkUrl = apkUrl;
+                    final String fLatest = latestTag;
                     runOnUiThread(() -> {
-                        progress.dismiss();
-                        if (!latestTag.equals(CURRENT_VERSION) && !finalUrl.isEmpty()) {
-                            showUpdatePrompt(latestTag, finalUrl);
+                        pd.dismiss();
+                        if (fLatest.compareTo(currentVersion) > 0 && !finalApkUrl.isEmpty()) {
+                            showUpdateDialog(fLatest, finalApkUrl);
                         } else {
-                            Toast.makeText(MainActivity.this, "App is up to date (v" + CURRENT_VERSION + ")", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, "App is up to date (v" + currentVersion + ")", Toast.LENGTH_SHORT).show();
                         }
                     });
                 } else {
                     runOnUiThread(() -> {
-                        progress.dismiss();
-                        Toast.makeText(MainActivity.this, "Update check failed: Server code " + conn, Toast.LENGTH_SHORT).show();
+                        pd.dismiss();
+                        Toast.makeText(MainActivity.this, "Check update failed: HTTP " + conn.getResponseCode(), Toast.LENGTH_SHORT).show();
                     });
                 }
             } catch (Exception e) {
                 runOnUiThread(() -> {
-                    progress.dismiss();
-                    Toast.makeText(MainActivity.this, "Network error checking update", Toast.LENGTH_SHORT).show();
+                    pd.dismiss();
+                    Toast.makeText(MainActivity.this, "Check update error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
     }
 
-    private void showUpdatePrompt(String tag, String dlUrl) {
+    private void showUpdateDialog(String newVer, String apkUrl) {
         new AlertDialog.Builder(this)
                 .setTitle("Update Available")
-                .setMessage("A new version (v" + tag + ") is available. Download and install now?")
-                .setPositiveButton("Download", (dialog, which) -> downloadAndInstallApk(dlUrl))
-                .setNegativeButton("Later", null)
+                .setMessage("A new version (v" + newVer + ") is available. Download now?")
+                .setPositiveButton("Download", (dialog, which) -> downloadAndInstallApk(apkUrl))
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    private void downloadAndInstallApk(String urlStr) {
-        ProgressDialog progress = new ProgressDialog(this);
-        progress.setMessage("Downloading update...");
-        progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progress.setCancelable(false);
-        progress.show();
+    private void downloadAndInstallApk(String downloadUrl) {
+        ProgressDialog pd = new ProgressDialog(this);
+        pd.setMessage("Downloading update...");
+        pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        pd.setIndeterminate(false);
+        pd.setMax(100);
+        pd.setCancelable(false);
+        pd.show();
 
         new Thread(() -> {
             try {
-                URL url = new URL(urlStr);
+                URL url = new URL(downloadUrl);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.connect();
                 int fileLength = conn.getContentLength();
 
-                InputStream input = conn.getInputStream();
-                File file = new File(getExternalFilesDir(null), "update.apk");
-                FileOutputStream output = new FileOutputStream(file);
+                File apkFile = new File(getExternalFilesDir(null), "update.apk");
+                if (apkFile.exists()) apkFile.delete();
 
-                byte[] data = new byte[4096];
-                long total = 0;
+                InputStream in = conn.getInputStream();
+                FileOutputStream out = new FileOutputStream(apkFile);
+
+                byte[] buffer = new byte[4096];
+                int total = 0;
                 int count;
-                while ((count = input.read(data)) != -1) {
+                while ((count = in.read(buffer)) != -1) {
                     total += count;
                     if (fileLength > 0) {
-                        int p = (int) (total * 100 / fileLength);
-                        runOnUiThread(() -> progress.setProgress(p));
+                        int progress = (int) (total * 100 / fileLength);
+                        runOnUiThread(() -> pd.setProgress(progress));
                     }
-                    output.write(data, 0, count);
+                    out.write(buffer, 0, count);
                 }
-                output.flush();
-                output.close();
-                input.close();
+
+                out.flush();
+                out.close();
+                in.close();
 
                 runOnUiThread(() -> {
-                    progress.dismiss();
-                    installDownloadedApk(file);
+                    pd.dismiss();
+                    installApk(apkFile);
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> {
-                    progress.dismiss();
-                    Toast.makeText(MainActivity.this, "Download error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    pd.dismiss();
+                    Toast.makeText(MainActivity.this, "Download error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
     }
 
-    private void installDownloadedApk(File apkFile) {
+    private void installApk(File apkFile) {
         try {
-            Uri contentUri = FileProvider.getUriForFile(this, getPackageName() + ".provider", apkFile);
+            Uri apkUri = FileProvider.getUriForFile(this, getPackageName() + ".provider", apkFile);
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to start install: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Install failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void testSpeak(String text) {
+        if (activeVoiceTestTts != null) {
+            try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}
+        }
+
+        String eng = prefs.getString("primary_engine", prefs.getString("selected_engine", ""));
+        activeVoiceTestTts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS && activeVoiceTestTts != null) {
+                float rate = prefs.getBoolean("force_rate", true) ? prefs.getFloat("rate", 1.0f) : 1.0f;
+                float pitch = prefs.getBoolean("force_pitch", true) ? prefs.getFloat("pitch", 1.0f) : 1.0f;
+                activeVoiceTestTts.setSpeechRate(rate);
+                activeVoiceTestTts.setPitch(pitch);
+                activeVoiceTestTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "test_id");
+            }
+        }, eng.isEmpty() ? null : eng);
+    }
+
+    private void stopSpeaking() {
+        if (activeVoiceTestTts != null) {
+            try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}
         }
     }
 
     @Override
     protected void onDestroy() {
-        if (testTts != null) {
-            testTts.stop();
-            testTts.shutdown();
-        }
         super.onDestroy();
+        if (previewTts != null) {
+            try { previewTts.shutdown(); } catch (Exception ignored) {}
+        }
+        if (activeVoiceTestTts != null) {
+            try { activeVoiceTestTts.shutdown(); } catch (Exception ignored) {}
+        }
     }
 }

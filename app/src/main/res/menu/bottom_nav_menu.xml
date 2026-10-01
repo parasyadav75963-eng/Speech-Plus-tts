@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_modes"
+        android:icon="@drawable/ic_tab_modes"
+        android:title="Modes" />
+    <item
+        android:id="@+id/nav_languages"
+        android:icon="@drawable/ic_tab_languages"
+        android:title="Languages" />
+    <item
+        android:id="@+id/nav_voices"
+        android:icon="@drawable/ic_tab_voices"
+        android:title="Voices" />
+    <item
+        android:id="@+id/nav_advanced"
+        android:icon="@drawable/ic_tab_advanced"
+        android:title="Advanced" />
+    <item
+        android:id="@+id/nav_more"
+        android:icon="@drawable/ic_tab_more"
+        android:title="More" />
+</menu>

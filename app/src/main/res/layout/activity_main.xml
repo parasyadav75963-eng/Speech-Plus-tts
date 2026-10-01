@@ -1,176 +1,590 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:padding="16dp">
+    android:orientation="vertical"
+    android:background="#121212">
 
+    <!-- Top Universal Search Bar with Keyboard & Voice Search -->
     <LinearLayout
+        android:id="@+id/layoutSearchBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="#1E1E1E">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <EditText
+            android:id="@+id/edtSearch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Speech Mode"
-            android:textColor="#03DAC5"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:layout_weight="1"
+            android:hint="Search languages, settings..."
+            android:textColorHint="#888888"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:background="@null"
+            android:singleLine="true"
+            android:imeOptions="actionSearch" />
 
-        <Spinner
-            android:id="@+id/spinnerModes"
+        <ImageButton
+            android:id="@+id/btnClearSearch"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_clear"
+            android:contentDescription="Clear search text"
+            android:visibility="gone" />
+
+        <ImageButton
+            android:id="@+id/btnVoiceSearch"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_mic"
+            android:contentDescription="Voice Search with Google Speech" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- TAB 1: MODES -->
+        <ScrollView
+            android:id="@+id/tabModes"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp" />
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="visible">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Primary Engine (Latin / English)"
-            android:textColor="#03DAC5"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            <LinearLayout
+                android:id="@+id/containerModes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <Spinner
-            android:id="@+id/spinnerEngines"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speech Operating Mode"
+                    android:textColor="#03DAC5"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerModes"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:id="@+id/lblPrimaryEngine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Primary TTS Engine (Latin / English / Default)"
+                    android:textColor="#03DAC5"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerEngines"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="16dp" />
+
+                <LinearLayout
+                    android:id="@+id/layoutSecondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Secondary TTS Engine (Regional / Devanagari)"
+                        android:textColor="#03DAC5"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp" />
+
+                    <Spinner
+                        android:id="@+id/spinnerSecondaryEngines"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginBottom="16dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Voice Test"
+                    android:textColor="#03DAC5"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnTestVoice"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Test Voice" />
+
+                    <Button
+                        android:id="@+id/btnStopSpeaking"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Stop" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- TAB 2: LANGUAGES -->
+        <ScrollView
+            android:id="@+id/tabLanguages"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp" />
-
-        <LinearLayout
-            android:id="@+id/layoutSecondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:layout_height="match_parent"
+            android:padding="16dp"
             android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Secondary Engine (Regional / Hindi)"
-                android:textColor="#03DAC5"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <Spinner
-                android:id="@+id/spinnerSecondaryEngines"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Audio Routing Stream"
-            android:textColor="#03DAC5"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:id="@+id/spinnerAudioRouting"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp" />
-
-        <CheckBox
-            android:id="@+id/chkAmplifyVolume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Amplify Speech Volume (Boost)"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp" />
-
-        <CheckBox
-            android:id="@+id/chkKeepAlive"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Keep-Alive Mode (Prevent background killing)"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp" />
-
-        <CheckBox
-            android:id="@+id/chkForceRate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Force Speech Rate"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="8dp" />
-
-        <CheckBox
-            android:id="@+id/chkForcePitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Force Pitch"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="12dp" />
-
-        <TextView
-            android:id="@+id/lblRate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Speech Rate: 1.00x"
-            android:textColor="#FFFFFF" />
-
-        <SeekBar
-            android:id="@+id/seekRate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="150"
-            android:layout_marginBottom="12dp" />
-
-        <TextView
-            android:id="@+id/lblPitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pitch: 1.00x"
-            android:textColor="#FFFFFF" />
-
-        <SeekBar
-            android:id="@+id/seekPitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            android:layout_marginBottom="16dp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="12dp">
-
-            <Button
-                android:id="@+id/btnTestVoice"
-                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Test Voice"
-                android:layout_marginEnd="6dp" />
+                android:orientation="vertical">
 
-            <Button
-                android:id="@+id/btnStopSpeaking"
-                android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Supported Global Languages (A-Z)"
+                    android:textColor="#03DAC5"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Enable or disable specific languages for automatic routing."
+                    android:textColor="#AAAAAA"
+                    android:textSize="13sp"
+                    android:layout_marginBottom="12dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <Button
+                        android:id="@+id/btnSelectAllLangs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Select All" />
+
+                    <Button
+                        android:id="@+id/btnClearAllLangs"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="Clear All" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutLanguagesList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+        </ScrollView>
+        <!-- TAB 3: VOICES (3-Level: Language -> Engine -> Variant + Rate, Pitch, Volume + Save) -->
+        <ScrollView
+            android:id="@+id/tabVoices"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/containerVoices"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Stop"
-                android:layout_marginStart="6dp" />
-        </LinearLayout>
+                android:orientation="vertical">
 
-        <Button
-            android:id="@+id/btnMoreOptions"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1. Select Language (A-Z)"
+                    android:textColor="#03DAC5"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerVoiceLanguage"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2. Select TTS Engine"
+                    android:textColor="#03DAC5"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerVoiceEngine"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="14dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3. Select Voice Variant"
+                    android:textColor="#03DAC5"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerVoiceVariant"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Rate with [-] and [+] Stepper -->
+                <TextView
+                    android:id="@+id/lblVoicesRate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speech Rate: 1.0x"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <Button
+                        android:id="@+id/btnRateMinus"
+                        android:layout_width="48dp"
+                        android:layout_height="44dp"
+                        android:text="-"
+                        android:textSize="18sp"
+                        android:contentDescription="Decrease speech rate by 5 percent" />
+
+                    <SeekBar
+                        android:id="@+id/seekVoiceRate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:progress="50" />
+
+                    <Button
+                        android:id="@+id/btnRatePlus"
+                        android:layout_width="48dp"
+                        android:layout_height="44dp"
+                        android:text="+"
+                        android:textSize="18sp"
+                        android:contentDescription="Increase speech rate by 5 percent" />
+                </LinearLayout>
+
+                <!-- Pitch with [-] and [+] Stepper -->
+                <TextView
+                    android:id="@+id/lblVoicesPitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Speech Pitch: 1.0x"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <Button
+                        android:id="@+id/btnPitchMinus"
+                        android:layout_width="48dp"
+                        android:layout_height="44dp"
+                        android:text="-"
+                        android:textSize="18sp"
+                        android:contentDescription="Decrease speech pitch by 5 percent" />
+
+                    <SeekBar
+                        android:id="@+id/seekVoicePitch"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:progress="50" />
+
+                    <Button
+                        android:id="@+id/btnPitchPlus"
+                        android:layout_width="48dp"
+                        android:layout_height="44dp"
+                        android:text="+"
+                        android:textSize="18sp"
+                        android:contentDescription="Increase speech pitch by 5 percent" />
+                </LinearLayout>
+
+                <!-- Volume Slider -->
+                <TextView
+                    android:id="@+id/lblVoicesVolume"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Voice Volume: 100%"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+
+                <SeekBar
+                    android:id="@+id/seekVoiceVolume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="100"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Action Buttons: Test Voice, Reset Default, Save Settings -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnTestVoiceSingle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="Test Voice" />
+
+                    <Button
+                        android:id="@+id/btnDefaultVoice"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Default" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnSaveVoiceSettings"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:backgroundTint="#00E676"
+                    android:textColor="#000000"
+                    android:textStyle="bold"
+                    android:text="Save Settings for this Language"
+                    android:layout_marginBottom="20dp" />
+
+                <!-- Configured Languages List Header -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Configured Language Mappings"
+                    android:textColor="#03DAC5"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:id="@+id/layoutConfiguredLanguages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+        </ScrollView>
+        <!-- TAB 4: ADVANCED -->
+        <ScrollView
+            android:id="@+id/tabAdvanced"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="More Options"
-            android:layout_marginBottom="12dp" />
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="gone">
 
-        <Button
-            android:id="@+id/btnCheckUpdate"
+            <LinearLayout
+                android:id="@+id/containerAdvanced"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Audio Stream Routing"
+                    android:textColor="#03DAC5"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <Spinner
+                    android:id="@+id/spinnerAudioRouting"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="16dp" />
+
+                <CheckBox
+                    android:id="@+id/chkAmplifyVolume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Volume Amplification (Boost Audio)"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <CheckBox
+                    android:id="@+id/chkKeepAlive"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Keep TTS Engine Always Alive (Prevent Cold Start Lag)"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <CheckBox
+                    android:id="@+id/chkForceRate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Force App Rate (Override Screen Reader Speed)"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <CheckBox
+                    android:id="@+id/chkForcePitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Force App Pitch (Override Screen Reader Pitch)"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <CheckBox
+                    android:id="@+id/chkStripAttributes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Remove Audio Attributes (Fix Cutoff on Samsung/Realme)"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="8dp" />
+
+                <CheckBox
+                    android:id="@+id/chkQuickChar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Quick Character Read (0ms Typing Feedback)"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginBottom="16dp" />
+
+                <Button
+                    android:id="@+id/btnIgnoreBattery"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Request Battery Unrestricted (Zero Background Kill)"
+                    android:layout_marginBottom="16dp" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- TAB 5: MORE -->
+        <ScrollView
+            android:id="@+id/tabMore"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Check for Updates"
-            android:backgroundTint="#6200EE"
-            android:textColor="#FFFFFF" />
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:visibility="gone">
 
-    </LinearLayout>
-</ScrollView>
+            <LinearLayout
+                android:id="@+id/containerMore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="System &amp; Quick Actions"
+                    android:textColor="#03DAC5"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="10dp" />
+
+                <Button
+                    android:id="@+id/btnOpenSystemTts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Open Android Text-to-Speech Settings"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnCheckUpdateMore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Check for In-App Updates"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnOpenAboutPage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Open Community &amp; Help Desk (All 10 Links)"
+                    android:layout_marginBottom="20dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="About Interested Technology for Blind"
+                    android:textColor="#03DAC5"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:id="@+id/tvAboutExcerpt"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Speech Plus TTS is built with a Zero-Lag mission for visually impaired users. Join our community for voice-first Android innovations, accessible gaming, and peer guidance.\n\nBlindness meets brilliance!"
+                    android:textColor="#CCCCCC"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp" />
+
+            </LinearLayout>
+        </ScrollView>
+
+    </FrameLayout>
+
+    <!-- 5-Tab Native Material Bottom Navigation View -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1E1E1E"
+        app:itemIconTint="@color/bottom_nav_color_selector"
+        app:itemTextColor="@color/bottom_nav_color_selector"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
+
+</LinearLayout>
