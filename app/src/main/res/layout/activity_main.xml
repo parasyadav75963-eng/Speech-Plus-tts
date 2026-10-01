@@ -2,15 +2,14 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:padding="16dp">
+    android:background="#121212">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Top Header & More Options Button -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,88 +23,45 @@
                 android:layout_weight="1"
                 android:text="Speech Plus TTS"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btnMoreOptions"
                 android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:text="MORE OPTIONS"
-                android:backgroundTint="#2D3748"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp" />
+                android:layout_height="wrap_content"
+                android:text="More Options"
+                android:contentDescription="Open options menu" />
         </LinearLayout>
 
-        <!-- 1. TTS Mode -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TTS Mode"
-            android:textColor="#BB86FC"
+            android:text="Speech Synthesis Mode"
+            android:textColor="#03DAC5"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinnerModes"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="#1E1E1E"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
-        <!-- 2. Primary Engine -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Primary TTS Engine"
-            android:textColor="#BB86FC"
+            android:text="Primary Engine (Latin / English)"
+            android:textColor="#03DAC5"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinnerEngines"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="#1E1E1E"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
-        <!-- 3. Primary Language -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Primary Language"
-            android:textColor="#BB86FC"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <Spinner
-            android:id="@+id/spinnerLanguages"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="#1E1E1E"
-            android:layout_marginBottom="16dp" />
-
-        <!-- 4. Primary Voice -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Primary Voice Selection"
-            android:textColor="#BB86FC"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
-
-        <Spinner
-            android:id="@+id/spinnerVoices"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="#1E1E1E"
-            android:layout_marginBottom="16dp" />
-
-        <!-- 5. SECONDARY SECTION (Dual & Mix Modes) -->
         <LinearLayout
             android:id="@+id/layoutSecondary"
             android:layout_width="match_parent"
@@ -116,77 +72,60 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Secondary TTS Engine (English / Other)"
+                android:text="Secondary Engine (Regional / Hindi)"
                 android:textColor="#03DAC5"
                 android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
+                android:textStyle="bold" />
 
             <Spinner
                 android:id="@+id/spinnerSecondaryEngines"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:background="#1E1E1E"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Secondary Language"
-                android:textColor="#03DAC5"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="4dp" />
-
-            <Spinner
-                android:id="@+id/spinnerSecondaryLanguages"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="#1E1E1E"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="12dp" />
         </LinearLayout>
 
-        <!-- 6. Audio Routing -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Audio Routing"
-            android:textColor="#BB86FC"
+            android:text="Audio Routing Stream"
+            android:textColor="#03DAC5"
             android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:textStyle="bold" />
 
         <Spinner
             android:id="@+id/spinnerAudioRouting"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="#1E1E1E"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
-        <!-- Sliders & CheckBoxes -->
+        <CheckBox
+            android:id="@+id/chkAmplifyVolume"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amplify Speech Volume (Boost)"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/chkKeepAlive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Keep-Alive Mode (Prevent background killing)"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="12dp" />
+
         <TextView
             android:id="@+id/lblRate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Speech Rate: 1.00x"
-            android:textColor="#E0E0E0"
-            android:textSize="14sp" />
+            android:textColor="#FFFFFF" />
 
         <SeekBar
             android:id="@+id/seekRate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="150"
-            android:progress="50"
-            android:layout_marginBottom="6dp" />
-
-        <CheckBox
-            android:id="@+id/chkForceRate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Force Speech Rate (Ignore TalkBack speed)"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
             android:layout_marginBottom="12dp" />
 
         <TextView
@@ -194,43 +133,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pitch: 1.00x"
-            android:textColor="#E0E0E0"
-            android:textSize="14sp" />
+            android:textColor="#FFFFFF" />
 
         <SeekBar
             android:id="@+id/seekPitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="150"
-            android:progress="50"
-            android:layout_marginBottom="6dp" />
-
-        <CheckBox
-            android:id="@+id/chkForcePitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Force Pitch (Ignore TalkBack pitch)"
-            android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:layout_marginBottom="12dp" />
-
-        <TextView
-            android:id="@+id/lblVolume"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Volume: 100%"
-            android:textColor="#E0E0E0"
-            android:textSize="14sp" />
-
-        <SeekBar
-            android:id="@+id/seekVolume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:max="100"
-            android:progress="100"
-            android:layout_marginBottom="20dp" />
+            android:layout_marginBottom="16dp" />
 
-        <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -240,41 +151,27 @@
             <Button
                 android:id="@+id/btnTestVoice"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="TEST VOICE"
-                android:backgroundTint="#3700B3"
-                android:textColor="#FFFFFF"
-                android:layout_marginEnd="4dp" />
+                android:text="Test Voice"
+                android:layout_marginEnd="6dp" />
 
             <Button
                 android:id="@+id/btnStopSpeaking"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="STOP"
-                android:backgroundTint="#C62828"
-                android:textColor="#FFFFFF"
-                android:layout_marginStart="4dp" />
+                android:text="Stop"
+                android:layout_marginStart="6dp" />
         </LinearLayout>
-
-        <Button
-            android:id="@+id/btnSaveSettings"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="SAVE SETTINGS"
-            android:backgroundTint="#2E7D32"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="12dp" />
 
         <Button
             android:id="@+id/btnCheckUpdate"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="CHECK FOR UPDATES"
-            android:backgroundTint="#1565C0"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="24dp" />
+            android:layout_height="wrap_content"
+            android:text="Check for Updates"
+            android:backgroundTint="#6200EE"
+            android:textColor="#FFFFFF" />
 
     </LinearLayout>
 </ScrollView>
