@@ -5,6 +5,9 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -44,12 +47,13 @@ jobs:
           tag_name: v1.3.0
           name: "Speech Plus TTS v1.3.0"
           body: |
-            ### Speech Plus TTS v1.3.0 Release Notes
-            - Zero-Lag TalkBack Navigation (QUEUE_FLUSH & instant engine cutoff)
-            - Auto-TTS Target Language Routing (Latin vs Regional scripts)
-            - Force Speech Rate & Pitch toggle controls
-            - Updated Community Support channels & WhatsApp assistance
-            - In-App Direct APK Updater support
+            ### Speech Plus TTS v1.3.0 Official Release
+            - **Zero-Lag TalkBack Navigation:** Swapped to instant QUEUE_FLUSH with hard cut-off on swipe to eliminate audio delay.
+            - **Auto-TTS Target Language Routing:** Pure Latin/English routed to Primary engine; Regional scripts (Devanagari, Hindi, Urdu, etc.) automatically routed to Secondary engine.
+            - **Force Speech Rate & Pitch:** Added dedicated persistent checkboxes to enforce custom speech rate and pitch across all apps.
+            - **Amplify Volume & Audio Stream Routing:** Enhanced audio loudness and direct routing between Media and Accessibility streams.
+            - **Official Community & Support:** Added active WhatsApp helplines (+916260503286, +919303472553), Web Portal, and community links in About page.
+            - **In-App Direct Updater:** Seamlessly check for updates and install the latest APK directly from the app interface.
           files: SpeechPlusTTS-v1.3.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
