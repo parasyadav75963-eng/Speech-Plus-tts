@@ -28,11 +28,11 @@ jobs:
           gradle-version: '8.4'
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleRelease --no-daemon
 
       - name: Prepare APK
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.3.0.apk
+          cp app/build/outputs/apk/release/app-release.apk SpeechPlusTTS-v1.3.0.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
