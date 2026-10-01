@@ -19,7 +19,7 @@
             android:textStyle="bold" />
 
         <Spinner
-            android:id="@+id/spinnerMode"
+            android:id="@+id/spinnerModes"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="12dp" />
@@ -142,6 +142,7 @@
         </LinearLayout>
 
         <Button
+        <Button android:id="@+id/btnMoreOptions" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="More Options" android:layout_marginBottom="12dp" />
             android:id="@+id/btnCheckUpdate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
