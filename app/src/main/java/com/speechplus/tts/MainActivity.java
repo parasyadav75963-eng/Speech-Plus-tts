@@ -37,13 +37,13 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private Spinner spinnerModes, spinnerEngines, spinnerSecondaryEngines, spinnerAudioRouting;
     private LinearLayout layoutSecondary;
-    private CheckBox chkAmplifyVolume, chkKeepAlive;
+    private CheckBox chkAmplifyVolume, chkKeepAlive, chkForceRate, chkForcePitch;
     private SeekBar seekRate, seekPitch;
     private TextView lblRate, lblPitch;
     private Button btnTestVoice, btnStopSpeaking, btnCheckUpdate, btnMoreOptions;
     private TextToSpeech testTts;
     private List<TextToSpeech.EngineInfo> enginesList = new ArrayList<>();
-    private static final String CURRENT_VERSION = "1.2.2";
+    private static final String CURRENT_VERSION = "1.3.0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
         layoutSecondary = findViewById(R.id.layoutSecondary);
         chkAmplifyVolume = findViewById(R.id.chkAmplifyVolume);
         chkKeepAlive = findViewById(R.id.chkKeepAlive);
+        chkForceRate = findViewById(R.id.chkForceRate);
+        chkForcePitch = findViewById(R.id.chkForcePitch);
         seekRate = findViewById(R.id.seekRate);
         seekPitch = findViewById(R.id.seekPitch);
         lblRate = findViewById(R.id.lblRate);
@@ -123,6 +125,14 @@ public class MainActivity extends AppCompatActivity {
         chkKeepAlive.setChecked(prefs.getBoolean("keep_alive", true));
         chkKeepAlive.setOnCheckedChangeListener((btn, isChecked) -> {
             prefs.edit().putBoolean("keep_alive", isChecked).apply();
+        });
+        chkForceRate.setChecked(prefs.getBoolean("force_rate", true));
+        chkForceRate.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean("force_rate", isChecked).apply();
+        });
+        chkForcePitch.setChecked(prefs.getBoolean("force_pitch", true));
+        chkForcePitch.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.edit().putBoolean("force_pitch", isChecked).apply();
         });
     }
 

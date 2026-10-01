@@ -88,6 +88,22 @@
             android:layout_height="wrap_content"
             android:text="Keep-Alive Mode (Prevent background killing)"
             android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/chkForceRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Force Speech Rate"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/chkForcePitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Force Pitch"
+            android:textColor="#FFFFFF"
             android:layout_marginBottom="12dp" />
 
         <TextView
@@ -142,7 +158,13 @@
         </LinearLayout>
 
         <Button
-        <Button android:id="@+id/btnMoreOptions" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="More Options" android:layout_marginBottom="12dp" />
+            android:id="@+id/btnMoreOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="More Options"
+            android:layout_marginBottom="12dp" />
+
+        <Button
             android:id="@+id/btnCheckUpdate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

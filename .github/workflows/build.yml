@@ -1,17 +1,13 @@
-name: Build and Release APK
+name: Build and Release SpeechPlus TTS APK
 
 on:
   push:
-    branches:
-      - main
-    tags:
-      - 'v*'
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout Repository
@@ -33,27 +29,27 @@ jobs:
 
       - name: Prepare APK
         run: |
-          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.2.2.apk
+          cp app/build/outputs/apk/debug/app-debug.apk SpeechPlusTTS-v1.3.0.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SpeechPlusTTS-v1.2.2-APK
-          path: SpeechPlusTTS-v1.2.2.apk
+          name: SpeechPlusTTS-v1.3.0-APK
+          path: SpeechPlusTTS-v1.3.0.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.2.2
-          name: "Speech Plus TTS v1.2.2"
+          tag_name: v1.3.0
+          name: "Speech Plus TTS v1.3.0"
           body: |
-            ### Speech Plus TTS v1.2.2 Release
-            - Added Audio Routing Stream (Media vs TalkBack Accessibility)
-            - Added Keep-Alive Mode (Prevents background service killing)
-            - Added Amplify Speech Volume (Boost output)
-            - Added In-App Automatic Updater & Direct APK Installer
-            - Optimized Smart Dual/Mixed Engine switching latency
-          files: SpeechPlusTTS-v1.2.2.apk
+            ### Speech Plus TTS v1.3.0 Release Notes
+            - Zero-Lag TalkBack Navigation (QUEUE_FLUSH & instant engine cutoff)
+            - Auto-TTS Target Language Routing (Latin vs Regional scripts)
+            - Force Speech Rate & Pitch toggle controls
+            - Updated Community Support channels & WhatsApp assistance
+            - In-App Direct APK Updater support
+          files: SpeechPlusTTS-v1.3.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
