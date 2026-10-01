@@ -751,7 +751,7 @@ public class MainActivity extends AppCompatActivity {
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(5000);
 
-                if (conn.getResponseCode() == 200) {
+                int responseCode = conn.getResponseCode(); if (responseCode == 200) {
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -785,7 +785,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     runOnUiThread(() -> {
                         pd.dismiss();
-                        Toast.makeText(MainActivity.this, "Check update failed: HTTP " + conn.getResponseCode(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Check update failed: HTTP " + responseCode, Toast.LENGTH_SHORT).show();
                     });
                 }
             } catch (Exception e) {
