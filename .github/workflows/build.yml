@@ -32,19 +32,19 @@ jobs:
 
       - name: Prepare APK
         run: |
-          cp app/build/outputs/apk/release/app-release.apk SpeechPlusTTS-v1.4.0.apk
+          cp app/build/outputs/apk/release/app-release.apk SpeechPlusTTS-v1.4.0.1.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SpeechPlusTTS-v1.4.0-APK
-          path: SpeechPlusTTS-v1.4.0.apk
+          name: SpeechPlusTTS-v1.4.0.1-APK
+          path: SpeechPlusTTS-v1.4.0.1.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         with:
-          tag_name: v1.4.0
+          tag_name: v1.4.0.1
           name: "Speech Plus TTS v1.4.0"
           body: |
             ### Speech Plus TTS v1.4.0 Official Release
@@ -54,6 +54,6 @@ jobs:
             - **Amplify Volume & Audio Stream Routing:** Enhanced audio loudness and direct routing between Media and Accessibility streams.
             - **Official Community & Support:** Added active WhatsApp helplines (+916260503286, +919303472553), Web Portal, and community links in About page.
             - **In-App Direct Updater:** Seamlessly check for updates and install the latest APK directly from the app interface.
-          files: SpeechPlusTTS-v1.4.0.apk
+          files: SpeechPlusTTS-v1.4.0.1.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
