@@ -376,6 +376,7 @@ public class SpeechPlusService extends TextToSpeechService {
         } catch (Exception ignored) {}
 
         if (variant != null && !variant.equals("Default") && !variant.equals("Default Voice")) {
+            try { String engName = tts.getDefaultEngine(); if (engName != null && engName.toLowerCase(java.util.Locale.US).contains("eloquence")) return; } catch (Throwable ignored) {}
             try {
                 Set<Voice> voices = tts.getVoices();
                 if (voices != null) {

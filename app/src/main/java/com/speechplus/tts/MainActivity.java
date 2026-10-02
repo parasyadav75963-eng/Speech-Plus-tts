@@ -347,20 +347,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadGlobalLanguages() {
         globalLanguages.clear();
-        Locale[] locales = Locale.getAvailableLocales();
-        Map<String, LangItem> map = new HashMap<>();
-
-        for (Locale loc : locales) {
-            String code = loc.getLanguage();
-            if (code == null || code.length() < 2) continue;
-            String disp = loc.getDisplayName(Locale.ENGLISH);
-            if (!disp.isEmpty() && !map.containsKey(disp)) {
-                map.put(disp, new LangItem(loc.toLanguageTag(), disp));
-            }
-        }
-
-        globalLanguages.addAll(map.values());
-        Collections.sort(globalLanguages, (a, b) -> a.displayName.compareToIgnoreCase(b.displayName));
+        globalLanguages.add(new LangItem("en-IN", "English (India)"));
+        globalLanguages.add(new LangItem("hi-IN", "Hindi (India)"));
+        globalLanguages.add(new LangItem("en-US", "English (United States)"));
+        globalLanguages.add(new LangItem("en-GB", "English (United Kingdom)"));
+        globalLanguages.add(new LangItem("bn-IN", "Bengali (India)"));
+        globalLanguages.add(new LangItem("gu-IN", "Gujarati (India)"));
+        globalLanguages.add(new LangItem("kn-IN", "Kannada (India)"));
+        globalLanguages.add(new LangItem("ml-IN", "Malayalam (India)"));
+        globalLanguages.add(new LangItem("mr-IN", "Marathi (India)"));
+        globalLanguages.add(new LangItem("or-IN", "Odia (India)"));
+        globalLanguages.add(new LangItem("pa-IN", "Punjabi (India)"));
+        globalLanguages.add(new LangItem("ta-IN", "Tamil (India)"));
+        globalLanguages.add(new LangItem("te-IN", "Telugu (India)"));
+        globalLanguages.add(new LangItem("ur-IN", "Urdu (India)"));
     }
     private void setupTabModes() {
         String[] modes = {"Mode 0: Single Engine Mode", "Mode 1: Auto Detect Language Mode", "Mode 2: Mixed Regional / Dual Mode"};
@@ -373,7 +373,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 prefs.edit().putInt("tts_mode", position).apply();
-                layoutSecondary.setVisibility(position == 2 ? View.VISIBLE : View.GONE);
+                layoutSecondary.setVisibility(View.GONE);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -613,6 +613,21 @@ public class MainActivity extends AppCompatActivity {
         variants.add("Default Voice");
 
         if (pkg == null || "disabled".equals(pkg)) {
+            ArrayAdapter<String> varAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, variants);
+            spinnerVoiceVariant.setAdapter(varAdapter);
+            return;
+        }
+
+        if (pkg != null && pkg.toLowerCase(java.util.Locale.US).contains("eloquence")) {
+            variants.add("Reed");
+            variants.add("Shelley");
+            variants.add("Bobby");
+            variants.add("Rocko");
+            variants.add("Glen");
+            variants.add("Sandy");
+            variants.add("Grandma");
+            variants.add("Grandpa");
+            variants.add("Junior");
             ArrayAdapter<String> varAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, variants);
             spinnerVoiceVariant.setAdapter(varAdapter);
             return;

@@ -84,7 +84,7 @@
                     android:layout_marginBottom="16dp" />
 
                 <TextView
-                    android:id="@+id/lblPrimaryEngine"
+                    android:id="@+id/lblPrimaryEngine" android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Primary TTS Engine (Latin / English / Default)"
@@ -94,13 +94,13 @@
                     android:layout_marginBottom="6dp" />
 
                 <Spinner
-                    android:id="@+id/spinnerEngines"
+                    android:id="@+id/spinnerEngines" android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginBottom="16dp" />
 
                 <LinearLayout
-                    android:id="@+id/layoutSecondary"
+                    android:id="@+id/layoutSecondary" android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
@@ -540,7 +540,7 @@
                     android:layout_marginBottom="8dp" />
 
                 <Button
-                    android:id="@+id/btnCheckUpdateMore"
+                    android:id="@+id/btnCheckUpdateMore" android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Check for In-App Updates"

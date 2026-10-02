@@ -1,20 +1,20 @@
 -- Merging decision tree log ---
 provider#androidx.core.content.FileProvider
-INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:55:9-63:20
+INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:56:9-64:20
 	android:grantUriPermissions
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:59:13-47
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:60:13-47
 	android:authorities
 		INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:57:13-60
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:58:13-60
 	android:exported
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:58:13-37
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:59:13-37
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:56:13-62
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:57:13-62
 manifest
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-67:12
-INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-67:12
-INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-67:12
-INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-67:12
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-68:12
+INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-68:12
+INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-68:12
+INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:2:1-68:12
 MERGED from [com.google.android.material:material:1.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-3/37d71eeda8979ac37db1d62b53a1a4f3/transformed/material-1.11.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /data/data/com.termux/files/home/.gradle/caches/transforms-3/eb7ebc2c640163932c1f6f7be1d2fbe0/transformed/jetified-appcompat-resources-1.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-3/052a9ee3d59df0ff88c3b7a6e160a719/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
@@ -95,9 +95,13 @@ action#android.speech.RecognitionService
 ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:15:13-72
 	android:name
 		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:15:21-69
+uses-permission#android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:19:5-95
+	android:name
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:19:22-92
 application
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:19:5-65:19
-INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:19:5-65:19
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:20:5-66:19
+INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:20:5-66:19
 MERGED from [com.google.android.material:material:1.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-3/37d71eeda8979ac37db1d62b53a1a4f3/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] /data/data/com.termux/files/home/.gradle/caches/transforms-3/37d71eeda8979ac37db1d62b53a1a4f3/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /data/data/com.termux/files/home/.gradle/caches/transforms-3/052a9ee3d59df0ff88c3b7a6e160a719/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
@@ -119,69 +123,69 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /data/data/com.termux/files
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.9.0] /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:24:9-35
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:25:9-35
 	android:label
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:22:9-40
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:23:9-40
 	android:roundIcon
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:23:9-54
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:24:9-54
 	android:icon
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:21:9-43
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:22:9-43
 	android:allowBackup
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:20:9-35
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:21:9-35
 	android:theme
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:25:9-51
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:26:9-51
 activity#com.speechplus.tts.MainActivity
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:27:9-35:20
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:28:9-36:20
 	android:label
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:30:13-44
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:31:13-44
 	android:exported
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:29:13-36
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:30:13-36
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:28:13-41
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:29:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:31:13-34:29
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:32:13-35:29
 action#android.intent.action.MAIN
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:32:17-69
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:33:17-69
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:32:25-66
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:33:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:33:17-77
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:34:17-77
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:33:27-74
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:34:27-74
 activity#com.speechplus.tts.AboutActivity
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:37:9-40:58
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:38:9-41:58
 	android:label
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:39:13-46
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:40:13-46
 	android:theme
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:40:13-55
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:41:13-55
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:38:13-42
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:39:13-42
 service#com.speechplus.tts.SpeechPlusService
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:42:9-53:19
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:43:9-54:19
 	android:label
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:44:13-51
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:45:13-51
 	android:exported
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:45:13-36
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:46:13-36
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:43:13-46
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:44:13-46
 intent-filter#action:name:android.intent.action.TTS_SERVICE+category:name:android.intent.category.DEFAULT
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:46:13-49:29
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:47:13-50:29
 category#android.intent.category.DEFAULT
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:48:17-76
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:49:17-76
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:48:27-73
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:49:27-73
 meta-data#android.speech.tts
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:50:13-52:54
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:51:13-53:54
 	android:resource
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:52:17-51
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:53:17-51
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:51:17-50
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:52:17-50
 meta-data#android.support.FILE_PROVIDER_PATHS
-ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:60:13-62:58
+ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:61:13-63:58
 	android:resource
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:62:17-55
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:63:17-55
 	android:name
-		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:61:17-67
+		ADDED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml:62:17-67
 uses-sdk
 INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml
