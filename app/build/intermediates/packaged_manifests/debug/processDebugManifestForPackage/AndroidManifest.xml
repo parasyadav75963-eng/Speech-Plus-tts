@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.speechplus.tts"
-    android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionCode="6"
+    android:versionName="1.4.0" >
 
     <uses-sdk
-        android:minSdkVersion="24"
+        android:minSdkVersion="21"
         android:targetSdkVersion="34" />
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
         </intent>
     </queries>
 
@@ -27,14 +32,16 @@
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:debuggable="true"
-        android:extractNativeLibs="false"
-        android:label="Speech Plus TTS Engine"
+        android:extractNativeLibs="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="Speech Plus TTS"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" >
+        android:theme="@style/Theme.SpeechPlusTTS" >
         <activity
             android:name="com.speechplus.tts.MainActivity"
             android:exported="true"
-            android:label="Speech Plus Settings" >
+            android:label="Speech Plus TTS" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -43,8 +50,8 @@
         </activity>
         <activity
             android:name="com.speechplus.tts.AboutActivity"
-            android:exported="false"
-            android:label="About Speech Plus" />
+            android:label="About Speech Plus"
+            android:theme="@style/Theme.SpeechPlusTTS" />
 
         <service
             android:name="com.speechplus.tts.SpeechPlusService"
@@ -61,6 +68,15 @@
                 android:resource="@xml/tts_engine" />
         </service>
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.speechplus.tts.provider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="com.speechplus.tts.androidx-startup"

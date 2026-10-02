@@ -326,7 +326,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadEngines() {
         installedEngines.clear();
-        installedEngines.add(new EngineInfo("disabled", "*Disabled"));
         Intent intent = new Intent("android.intent.action.TTS_SERVICE");
         List<ResolveInfo> resolveInfos = getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         if (resolveInfos.isEmpty()) {
@@ -471,17 +470,6 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<LangItem> langAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, globalLanguages);
         spinnerVoiceLanguage.setAdapter(langAdapter);
 
-        spinnerVoiceLanguage.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position >= 0 && position < globalLanguages.size()) {
-                    loadLanguageVoiceMapping(globalLanguages.get(position).code);
-                }
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
         ArrayAdapter<EngineInfo> engAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, installedEngines);
         spinnerVoiceEngine.setAdapter(engAdapter);
 
@@ -570,23 +558,8 @@ public class MainActivity extends AppCompatActivity {
 
         btnTestVoiceSingle.setOnClickListener(v -> {
             LangItem lang = (LangItem) spinnerVoiceLanguage.getSelectedItem();
-            EngineInfo eng = (EngineInfo) spinnerVoiceEngine.getSelectedItem();
-            if (lang == null || eng == null) return;
-
-            if ("disabled".equals(eng.name)) {
-                if (activeVoiceTestTts != null) {
-                    try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}
-                }
-                Toast.makeText(this, "Voice is disabled for " + lang.displayName, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            float rate = 0.5f + (seekVoiceRate.getProgress() / 100.0f) * 1.5f;
-            float pitch = 0.5f + (seekVoicePitch.getProgress() / 100.0f) * 1.5f;
-            int vol = seekVoiceVolume.getProgress();
-            String selVar = spinnerVoiceVariant.getSelectedItem() != null ? spinnerVoiceVariant.getSelectedItem().toString() : "Default Voice";
-
-            testSpeakPerLanguage(lang, eng.name, selVar, rate, pitch, vol);
+            String langName = lang != null ? lang.displayName : "this language";
+            testSpeak("Testing speech synthesis configuration for " + langName);
         });
 
         btnSaveVoiceSettings.setOnClickListener(v -> saveLanguageVoiceMapping());
@@ -612,12 +585,6 @@ public class MainActivity extends AppCompatActivity {
         List<String> variants = new ArrayList<>();
         variants.add("Default Voice");
 
-        if (pkg == null || "disabled".equals(pkg)) {
-            ArrayAdapter<String> varAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, variants);
-            spinnerVoiceVariant.setAdapter(varAdapter);
-            return;
-        }
-
         previewTts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS && previewTts != null) {
                 try {
@@ -635,49 +602,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }, pkg);
     }
-    private void loadLanguageVoiceMapping(String langCode) {
-        String mapKey = "lang_map_" + langCode;
-        String jsonStr = prefs.getString(mapKey, null);
-        if (jsonStr != null) {
-            try {
-                JSONObject obj = new JSONObject(jsonStr);
-                String engPkg = obj.optString("engine_pkg", "disabled");
-                float rate = (float) obj.optDouble("rate", 1.0);
-                float pitch = (float) obj.optDouble("pitch", 1.0);
-                int vol = obj.optInt("volume", 100);
-
-                int engIdx = 0;
-                for (int i = 0; i < installedEngines.size(); i++) {
-                    if (installedEngines.get(i).name.equals(engPkg)) {
-                        engIdx = i;
-                        break;
-                    }
-                }
-                spinnerVoiceEngine.setSelection(engIdx);
-
-                int rateProg = Math.max(0, Math.min(100, Math.round((rate - 0.5f) / 1.5f * 100.0f)));
-                int pitchProg = Math.max(0, Math.min(100, Math.round((pitch - 0.5f) / 1.5f * 100.0f)));
-
-                seekVoiceRate.setProgress(rateProg);
-                seekVoicePitch.setProgress(pitchProg);
-                seekVoiceVolume.setProgress(vol);
-
-                updateRateLabel();
-                updatePitchLabel();
-                lblVoicesVolume.setText("Voice Volume: " + vol + "%");
-                return;
-            } catch (Exception ignored) {}
-        }
-
-        spinnerVoiceEngine.setSelection(0);
-        seekVoiceRate.setProgress(50);
-        seekVoicePitch.setProgress(50);
-        seekVoiceVolume.setProgress(100);
-        updateRateLabel();
-        updatePitchLabel();
-        lblVoicesVolume.setText("Voice Volume: 100%");
-    }
-
     private void saveLanguageVoiceMapping() {
         LangItem selLang = (LangItem) spinnerVoiceLanguage.getSelectedItem();
         EngineInfo selEng = (EngineInfo) spinnerVoiceEngine.getSelectedItem();
@@ -945,42 +869,6 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Install failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-    private void testSpeakPerLanguage(LangItem lang, String engPkg, String variant, float rate, float pitch, int vol) {
-        if (activeVoiceTestTts != null) {
-            try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}
-        }
-
-        activeVoiceTestTts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS && activeVoiceTestTts != null) {
-                try {
-                    Locale loc = Locale.forLanguageTag(lang.code);
-                    activeVoiceTestTts.setLanguage(loc);
-                } catch (Exception ignored) {}
-
-                if (variant != null && !variant.equals("Default Voice") && !variant.equals("Default")) {
-                    try {
-                        Set<Voice> voices = activeVoiceTestTts.getVoices();
-                        if (voices != null) {
-                            for (Voice v : voices) {
-                                if (v.getName().equals(variant)) {
-                                    activeVoiceTestTts.setVoice(v);
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (Exception ignored) {}
-                }
-
-                activeVoiceTestTts.setSpeechRate(rate);
-                activeVoiceTestTts.setPitch(pitch);
-
-                Bundle params = new Bundle();
-                params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, vol / 100.0f);
-                activeVoiceTestTts.speak("Testing speech synthesis configuration for " + lang.displayName, TextToSpeech.QUEUE_FLUSH, params, "test_lang_id");
-            }
-        }, engPkg);
-    }
-
     private void testSpeak(String text) {
         if (activeVoiceTestTts != null) {
             try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}

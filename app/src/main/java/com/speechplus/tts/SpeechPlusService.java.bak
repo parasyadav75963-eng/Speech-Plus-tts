@@ -1,10 +1,5 @@
 package com.speechplus.tts;
 
-import org.json.JSONObject;
-import java.util.Locale;
-import java.util.Set;
-import android.speech.tts.Voice;
-
 import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
@@ -185,30 +180,6 @@ public class SpeechPlusService extends TextToSpeechService {
             try { secondaryTts.stop(); } catch (Exception ignored) {}
         }
 
-
-        // Check Per-Language Voice Configuration
-        JSONObject langConfig = findLanguageConfig(request.getLanguage(), request.getCountry(), text);
-        if (langConfig != null) {
-            String engPkg = langConfig.optString("engine_pkg", "");
-            if ("disabled".equals(engPkg)) {
-                return;
-            }
-            float langRate = (float) langConfig.optDouble("rate", speechRate);
-            float langPitch = (float) langConfig.optDouble("pitch", pitch);
-            int langVol = langConfig.optInt("volume", (int) (volume * 100));
-            String langCode = langConfig.optString("lang_code", "");
-            String variant = langConfig.optString("voice_variant", "Default");
-
-            Bundle langParams = new Bundle(params);
-            langParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, langVol / 100.0f);
-
-            TextToSpeech targetTts = getOrCreateEngine(engPkg);
-            if (targetTts != null && isEngineReady(engPkg, targetTts)) {
-                applyVoiceAndLocale(targetTts, langCode, variant);
-                speakOnEngine(targetTts, true, text, langRate, langPitch, langParams, true);
-                return;
-            }
-        }
         if (mode == 0) {
             // Mode 0: Single Engine Mode
             speakOnEngine(primaryTts, isPrimaryReady, text, speechRate, pitch, params, true);
@@ -279,113 +250,5 @@ public class SpeechPlusService extends TextToSpeechService {
             } catch (Exception ignored) {}
         }
         super.onDestroy();
-    }
-
-    // === PER-LANGUAGE HELPERS ===
-    private final java.util.Map<String, TextToSpeech> extraEngines = new java.util.HashMap<>();
-    private final java.util.Set<String> readyExtraEngines = new java.util.HashSet<>();
-
-    private synchronized TextToSpeech getOrCreateEngine(String pkg) {
-        if (pkg == null || pkg.isEmpty() || "disabled".equals(pkg)) return null;
-        if (pkg.equals(currentPrimaryEngine)) return primaryTts;
-        if (pkg.equals(currentSecondaryEngine)) return secondaryTts;
-
-        if (extraEngines.containsKey(pkg)) {
-            return extraEngines.get(pkg);
-        }
-
-        TextToSpeech engine = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                synchronized (readyExtraEngines) {
-                    readyExtraEngines.add(pkg);
-                }
-            }
-        }, pkg);
-        extraEngines.put(pkg, engine);
-        return engine;
-    }
-
-    private synchronized boolean isEngineReady(String pkg, TextToSpeech engine) {
-        if (engine == null) return false;
-        if (engine == primaryTts) return isPrimaryReady;
-        if (engine == secondaryTts) return isSecondaryReady;
-        synchronized (readyExtraEngines) {
-            return readyExtraEngines.contains(pkg);
-        }
-    }
-
-    private JSONObject findLanguageConfig(String reqLang, String reqCountry, String text) {
-        if (prefs == null) return null;
-        Set<String> configuredKeys = prefs.getStringSet("configured_lang_keys", null);
-        if (configuredKeys == null || configuredKeys.isEmpty()) return null;
-
-        String reqTag = "";
-        String langPart = (reqLang != null) ? reqLang.toLowerCase().trim() : "";
-        String countryPart = (reqCountry != null) ? reqCountry.toLowerCase().trim() : "";
-        if (!countryPart.isEmpty()) {
-            reqTag = langPart + "-" + countryPart;
-        } else {
-            reqTag = langPart;
-        }
-
-        if (!langPart.isEmpty()) {
-            for (String key : configuredKeys) {
-                String code = key.replace("lang_map_", "").toLowerCase().trim();
-                if (code.equals(reqTag) || code.equals(langPart)) {
-                    String json = prefs.getString(key, null);
-                    if (json != null) {
-                        try { return new JSONObject(json); } catch (Exception ignored) {}
-                    }
-                }
-            }
-            for (String key : configuredKeys) {
-                String code = key.replace("lang_map_", "").toLowerCase().trim();
-                if (code.length() >= 2 && langPart.length() >= 2) {
-                    if (langPart.startsWith(code.substring(0, 2)) || code.startsWith(langPart.substring(0, 2))) {
-                        String json = prefs.getString(key, null);
-                        if (json != null) {
-                            try { return new JSONObject(json); } catch (Exception ignored) {}
-                        }
-                    }
-                }
-            }
-        }
-
-        if (containsRegional(text)) {
-            for (String key : configuredKeys) {
-                String code = key.replace("lang_map_", "").toLowerCase().trim();
-                if (!code.startsWith("en")) {
-                    String json = prefs.getString(key, null);
-                    if (json != null) {
-                        try { return new JSONObject(json); } catch (Exception ignored) {}
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private void applyVoiceAndLocale(TextToSpeech tts, String langCode, String variant) {
-        if (tts == null) return;
-        try {
-            if (langCode != null && !langCode.isEmpty()) {
-                tts.setLanguage(Locale.forLanguageTag(langCode));
-            }
-        } catch (Exception ignored) {}
-
-        if (variant != null && !variant.equals("Default") && !variant.equals("Default Voice")) {
-            try {
-                Set<Voice> voices = tts.getVoices();
-                if (voices != null) {
-                    for (Voice v : voices) {
-                        if (v.getName().equals(variant)) {
-                            tts.setVoice(v);
-                            break;
-                        }
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
     }
 }

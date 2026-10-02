@@ -4,7 +4,7 @@
             "outputFile": "com.speechplus.tts.app-mergeDebugResources-29:/values-v16/values-v16.xml",
             "map": [
                 {
-                    "source": "/data/data/com.termux/files/home/.gradle/caches/9.8.0/transforms/9e44284c7247399fdf122bd2ab32f068/transformed/core-1.9.0/res/values-v16/values-v16.xml",
+                    "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -14,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "/data/data/com.termux/files/home/.gradle/caches/9.8.0/transforms/4f985961f12637a8924dc5a249c44dac/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
+                    "source": "/data/data/com.termux/files/home/.gradle/caches/transforms-3/7c67a307a3a3796ce4c5437df08d3c96/transformed/appcompat-1.6.1/res/values-v16/values-v16.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

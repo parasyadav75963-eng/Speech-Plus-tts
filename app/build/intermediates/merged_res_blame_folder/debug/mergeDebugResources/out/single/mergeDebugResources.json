@@ -1,5 +1,29 @@
 [
     {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_tab_modes.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_tab_modes.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/color_bottom_nav_color_selector.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/color/bottom_nav_color_selector.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_tab_voices.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_tab_voices.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_tab_more.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_tab_more.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_mic.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_mic.xml"
+    },
+    {
         "merged": "com.speechplus.tts.app-debug-31:/xml_tts_engine.xml.flat",
         "source": "com.speechplus.tts.app-main-33:/xml/tts_engine.xml"
     },
@@ -10,5 +34,33 @@
     {
         "merged": "com.speechplus.tts.app-debug-31:/layout_activity_about.xml.flat",
         "source": "com.speechplus.tts.app-main-33:/layout/activity_about.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/menu_bottom_nav_menu.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/menu/bottom_nav_menu.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_tab_advanced.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_tab_advanced.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/xml_provider_paths.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/xml/provider_paths.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_clear.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_clear.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.speechplus.tts.app-debug-31:/drawable_ic_tab_languages.xml.flat",
+        "source": "com.speechplus.tts.app-main-33:/drawable/ic_tab_languages.xml"
     }
 ]
