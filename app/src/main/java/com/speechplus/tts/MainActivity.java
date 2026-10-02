@@ -624,7 +624,7 @@ public class MainActivity extends AppCompatActivity {
                     Set<Voice> voices = previewTts.getVoices();
                     if (voices != null) {
                         for (Voice v : voices) {
-                            variants.add(v.getName());
+                            if (v != null && v.getLocale() != null) { String sel = (spinnerVoiceLanguage != null && spinnerVoiceLanguage.getSelectedItem() != null) ? spinnerVoiceLanguage.getSelectedItem().toString().toLowerCase(Locale.US) : ""; String vl = v.getLocale().getLanguage().toLowerCase(Locale.US); if ((sel.contains("hindi") || sel.startsWith("hi")) && !vl.equals("hi")) continue; if ((sel.contains("english") || sel.startsWith("en")) && !vl.equals("en")) continue; } variants.add(v.getName());
                         }
                     }
                 } catch (Exception ignored) {}
@@ -789,7 +789,7 @@ public class MainActivity extends AppCompatActivity {
             if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
                 Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
                 intent.setData(Uri.parse("package:" + getPackageName()));
-                try { startActivity(intent); } catch (Exception ignored) {}
+                try { startActivity(intent); } catch (Exception e1) { try { startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName()))); } catch (Exception ignored) {} }
             } else {
                 Toast.makeText(this, "Battery is already unrestricted!", Toast.LENGTH_SHORT).show();
             }

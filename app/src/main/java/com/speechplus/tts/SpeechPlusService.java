@@ -254,6 +254,7 @@ public class SpeechPlusService extends TextToSpeechService {
     }
 
     private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush) {
+        if (tts == null || !isReady) { if (primaryTts != null && isPrimaryReady) { tts = primaryTts; isReady = true; } else if (secondaryTts != null && isSecondaryReady) { tts = secondaryTts; isReady = true; } else { tts = getOrCreateEngine("com.google.android.tts"); isReady = (tts != null); } }
         if (tts != null && isReady) {
             try {
                 tts.setSpeechRate(rate);
