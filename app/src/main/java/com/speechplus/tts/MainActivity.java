@@ -348,20 +348,50 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadGlobalLanguages() {
         globalLanguages.clear();
-        globalLanguages.add(new LangItem("en-IN", "English (India)"));
-        globalLanguages.add(new LangItem("hi-IN", "Hindi (India)"));
-        globalLanguages.add(new LangItem("en-US", "English (United States)"));
-        globalLanguages.add(new LangItem("en-GB", "English (United Kingdom)"));
-        globalLanguages.add(new LangItem("bn-IN", "Bengali (India)"));
-        globalLanguages.add(new LangItem("gu-IN", "Gujarati (India)"));
-        globalLanguages.add(new LangItem("kn-IN", "Kannada (India)"));
-        globalLanguages.add(new LangItem("ml-IN", "Malayalam (India)"));
-        globalLanguages.add(new LangItem("mr-IN", "Marathi (India)"));
-        globalLanguages.add(new LangItem("or-IN", "Odia (India)"));
-        globalLanguages.add(new LangItem("pa-IN", "Punjabi (India)"));
-        globalLanguages.add(new LangItem("ta-IN", "Tamil (India)"));
-        globalLanguages.add(new LangItem("te-IN", "Telugu (India)"));
-        globalLanguages.add(new LangItem("ur-IN", "Urdu (India)"));
+        globalLanguages.add(new LangItem("ar", "Arabic"));
+        globalLanguages.add(new LangItem("as", "Assamese"));
+        globalLanguages.add(new LangItem("bn", "Bengali"));
+        globalLanguages.add(new LangItem("bho", "Bhojpuri"));
+        globalLanguages.add(new LangItem("bg", "Bulgarian"));
+        globalLanguages.add(new LangItem("my", "Burmese"));
+        globalLanguages.add(new LangItem("zh", "Chinese"));
+        globalLanguages.add(new LangItem("cs", "Czech"));
+        globalLanguages.add(new LangItem("da", "Danish"));
+        globalLanguages.add(new LangItem("nl", "Dutch"));
+        globalLanguages.add(new LangItem("en", "English"));
+        globalLanguages.add(new LangItem("fi", "Finnish"));
+        globalLanguages.add(new LangItem("fr", "French"));
+        globalLanguages.add(new LangItem("de", "German"));
+        globalLanguages.add(new LangItem("el", "Greek"));
+        globalLanguages.add(new LangItem("gu", "Gujarati"));
+        globalLanguages.add(new LangItem("he", "Hebrew"));
+        globalLanguages.add(new LangItem("hi", "Hindi"));
+        globalLanguages.add(new LangItem("hu", "Hungarian"));
+        globalLanguages.add(new LangItem("id", "Indonesian"));
+        globalLanguages.add(new LangItem("it", "Italian"));
+        globalLanguages.add(new LangItem("ja", "Japanese"));
+        globalLanguages.add(new LangItem("kn", "Kannada"));
+        globalLanguages.add(new LangItem("ko", "Korean"));
+        globalLanguages.add(new LangItem("ml", "Malayalam"));
+        globalLanguages.add(new LangItem("mr", "Marathi"));
+        globalLanguages.add(new LangItem("ne", "Nepali"));
+        globalLanguages.add(new LangItem("or", "Odia"));
+        globalLanguages.add(new LangItem("fa", "Persian"));
+        globalLanguages.add(new LangItem("pl", "Polish"));
+        globalLanguages.add(new LangItem("pt", "Portuguese"));
+        globalLanguages.add(new LangItem("pa", "Punjabi"));
+        globalLanguages.add(new LangItem("ro", "Romanian"));
+        globalLanguages.add(new LangItem("ru", "Russian"));
+        globalLanguages.add(new LangItem("sa", "Sanskrit"));
+        globalLanguages.add(new LangItem("es", "Spanish"));
+        globalLanguages.add(new LangItem("sv", "Swedish"));
+        globalLanguages.add(new LangItem("ta", "Tamil"));
+        globalLanguages.add(new LangItem("te", "Telugu"));
+        globalLanguages.add(new LangItem("th", "Thai"));
+        globalLanguages.add(new LangItem("tr", "Turkish"));
+        globalLanguages.add(new LangItem("uk", "Ukrainian"));
+        globalLanguages.add(new LangItem("ur", "Urdu"));
+        globalLanguages.add(new LangItem("vi", "Vietnamese"));
     }
     private void setupTabModes() {
         String[] modes = {"Mode 0: Single Engine Mode", "Mode 1: Auto Detect Language Mode", "Mode 2: Mixed Regional / Dual Mode"};
@@ -608,6 +638,7 @@ public class MainActivity extends AppCompatActivity {
     private void initPreviewEngine(String pkg) {
         if (previewTts != null) {
             try { previewTts.shutdown(); } catch (Exception ignored) {}
+            previewTts = null;
         }
 
         List<String> variants = new ArrayList<>();
@@ -619,7 +650,8 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (pkg != null && pkg.toLowerCase(java.util.Locale.US).contains("eloquence")) {
+        String pkgLower = pkg.toLowerCase(java.util.Locale.US);
+        if (pkgLower.contains("eloquence")) {
             variants.add("Reed");
             variants.add("Shelley");
             variants.add("Bobby");
@@ -634,22 +666,60 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        previewTts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS && previewTts != null) {
+        if (pkgLower.contains("smartvoice")) {
+            ArrayAdapter<String> varAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, variants);
+            spinnerVoiceVariant.setAdapter(varAdapter);
+            return;
+        }
+
+        final String selectedLangText;
+        if (spinnerVoiceLanguage != null && spinnerVoiceLanguage.getSelectedItem() != null) {
+            selectedLangText = spinnerVoiceLanguage.getSelectedItem().toString().toLowerCase(java.util.Locale.US).trim();
+        } else {
+            selectedLangText = "";
+        }
+
+        String tempCode = "";
+        for (LangItem item : globalLanguages) {
+            if (item.displayName.equalsIgnoreCase(selectedLangText) || selectedLangText.startsWith(item.displayName.toLowerCase(java.util.Locale.US))) {
+                tempCode = item.code.split("-")[0].toLowerCase(java.util.Locale.US);
+                break;
+            }
+        }
+        if (tempCode.isEmpty() && selectedLangText.length() >= 2) {
+            tempCode = selectedLangText.substring(0, 2);
+        }
+        final String targetLangCode = tempCode;
+
+        final TextToSpeech[] holder = new TextToSpeech[1];
+        holder[0] = new TextToSpeech(this, status -> {
+            TextToSpeech ttsInstance = holder[0] != null ? holder[0] : previewTts;
+            if (status == TextToSpeech.SUCCESS && ttsInstance != null) {
                 try {
-                    Set<Voice> voices = previewTts.getVoices();
+                    Set<Voice> voices = ttsInstance.getVoices();
                     if (voices != null) {
                         for (Voice v : voices) {
-                            if (v != null && v.getLocale() != null) { String sel = (spinnerVoiceLanguage != null && spinnerVoiceLanguage.getSelectedItem() != null) ? spinnerVoiceLanguage.getSelectedItem().toString().toLowerCase(Locale.US) : ""; String vl = v.getLocale().getLanguage().toLowerCase(Locale.US); if ((sel.contains("hindi") || sel.startsWith("hi")) && !vl.equals("hi")) continue; if ((sel.contains("english") || sel.startsWith("en")) && !vl.equals("en")) continue; } variants.add(v.getName());
+                            if (v != null && v.getName() != null) {
+                                if (v.getLocale() != null && !targetLangCode.isEmpty()) {
+                                    String vl = v.getLocale().getLanguage().toLowerCase(java.util.Locale.US);
+                                    if (!vl.equals(targetLangCode)) {
+                                        continue;
+                                    }
+                                }
+                                if (!variants.contains(v.getName())) {
+                                    variants.add(v.getName());
+                                }
+                            }
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Throwable ignored) {}
             }
             runOnUiThread(() -> {
                 ArrayAdapter<String> varAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, variants);
                 spinnerVoiceVariant.setAdapter(varAdapter);
             });
         }, pkg);
+        previewTts = holder[0];
     }
     private void loadLanguageVoiceMapping(String langCode) {
         String mapKey = "lang_map_" + langCode;

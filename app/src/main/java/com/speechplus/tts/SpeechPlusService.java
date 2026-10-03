@@ -82,21 +82,36 @@ public class SpeechPlusService extends TextToSpeechService {
         }
     }
 
+    private boolean isLegacyEngine(String pkg) {
+        if (pkg == null) return false;
+        String p = pkg.toLowerCase(java.util.Locale.US);
+        return p.contains("eloquence") || p.contains("smartvoice") || p.contains("codefactory");
+    }
+
     private void applyAudioRouting(TextToSpeech engine) {
-        try { String dEng = engine.getDefaultEngine(); if (dEng != null && dEng.toLowerCase(java.util.Locale.US).contains("eloquence")) return; } catch (Throwable ignored) {}
         if (engine == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
-        int routing = prefs.getInt("audio_routing", 0);
-        AudioAttributes.Builder attrs = new AudioAttributes.Builder();
-        if (routing == 1) {
-            attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
-                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
-        } else {
-            attrs.setUsage(AudioAttributes.USAGE_MEDIA)
-                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
-        }
         try {
+            if (engine == primaryTts && isLegacyEngine(currentPrimaryEngine)) return;
+            if (engine == secondaryTts && isLegacyEngine(currentSecondaryEngine)) return;
+            if (extraEngines != null) {
+                for (java.util.Map.Entry<String, TextToSpeech> entry : extraEngines.entrySet()) {
+                    if (entry.getValue() == engine && isLegacyEngine(entry.getKey())) return;
+                }
+            }
+            String dEng = engine.getDefaultEngine();
+            if (isLegacyEngine(dEng)) return;
+
+            int routing = prefs.getInt("audio_routing", 0);
+            AudioAttributes.Builder attrs = new AudioAttributes.Builder();
+            if (routing == 1) {
+                attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+            } else {
+                attrs.setUsage(AudioAttributes.USAGE_MEDIA)
+                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+            }
             engine.setAudioAttributes(attrs.build());
-        } catch (Exception ignored) {}
+        } catch (Throwable ignored) {}
     }
 
     private boolean containsRegional(String text) {
