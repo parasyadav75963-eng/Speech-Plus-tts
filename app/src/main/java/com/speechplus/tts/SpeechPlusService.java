@@ -83,6 +83,7 @@ public class SpeechPlusService extends TextToSpeechService {
     }
 
     private void applyAudioRouting(TextToSpeech engine) {
+        try { String dEng = engine.getDefaultEngine(); if (dEng != null && dEng.toLowerCase(java.util.Locale.US).contains("eloquence")) return; } catch (Throwable ignored) {}
         if (engine == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
         int routing = prefs.getInt("audio_routing", 0);
         AudioAttributes.Builder attrs = new AudioAttributes.Builder();

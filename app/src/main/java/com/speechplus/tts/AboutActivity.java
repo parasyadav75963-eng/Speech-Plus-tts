@@ -190,7 +190,7 @@ public class AboutActivity extends Activity {
                     final String finalUrl = downloadUrl;
                     runOnUiThread(() -> {
                         progress.dismiss();
-                        if (!finalUrl.isEmpty()) {
+                        String curVer = BuildConfig.VERSION_NAME.replace("v", "").trim(); String cleanTag = latestTag.replace("v", "").trim(); if (cleanTag.equals(curVer)) { new AlertDialog.Builder(AboutActivity.this).setTitle("Speech Plus TTS is Up to Date").setMessage("You are already using the latest version (v" + curVer + ").").setPositiveButton("OK", null).show(); } else if (!finalUrl.isEmpty()) {
                             showUpdatePrompt(latestTag, finalUrl);
                         } else {
                             Toast.makeText(AboutActivity.this, "No APK asset found in release " + latestTag, Toast.LENGTH_SHORT).show();
