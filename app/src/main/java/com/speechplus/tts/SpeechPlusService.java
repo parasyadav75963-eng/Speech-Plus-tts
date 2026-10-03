@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class SpeechPlusService extends TextToSpeechService {
-
     private TextToSpeech primaryTts;
     private TextToSpeech secondaryTts;
     private SharedPreferences prefs;
@@ -29,10 +28,9 @@ public class SpeechPlusService extends TextToSpeechService {
     private boolean isSecondaryReady = false;
     private String currentPrimaryEngine = "";
     private String currentSecondaryEngine = "";
-    private int lastAudioRouting = -1;
-    private static final Pattern REGIONAL_PATTERN = Pattern.compile("[\\p{IsDevanagari}]+");
+    // 🔥 Advanced Indian Languages Regex 🔥
+    private static final Pattern REGIONAL_PATTERN = Pattern.compile("[\\p{IsDevanagari}\\p{IsBengali}\\p{IsTamil}\\p{IsTelugu}\\p{IsGujarati}\\p{IsMalayalam}\\p{IsKannada}\\p{IsOriya}\\p{IsGurmukhi}]+");
     private final Map<String, TextToSpeech> extraEngines = new HashMap<>();
-    private final Set<String> readyExtraEngines = new HashSet<>();
 
     @Override
     public void onCreate() {
@@ -50,9 +48,9 @@ public class SpeechPlusService extends TextToSpeechService {
             currentPrimaryEngine = pEng;
             isPrimaryReady = false;
             if (primaryTts != null) { try { primaryTts.shutdown(); } catch (Exception ignored) {} }
-            primaryTts = new TextToSpeech(this, status -> {
-                if (status == TextToSpeech.SUCCESS) { isPrimaryReady = true; applyAudioRouting(primaryTts, pEng); }
-            }, pEng.isEmpty() ? null : pEng);
+            if (!pEng.isEmpty()) {
+                primaryTts = new TextToSpeech(this, status -> { if (status == TextToSpeech.SUCCESS) isPrimaryReady = true; }, pEng);
+            }
         }
 
         if (secondaryTts == null || !sEng.equals(currentSecondaryEngine)) {
@@ -60,10 +58,20 @@ public class SpeechPlusService extends TextToSpeechService {
             isSecondaryReady = false;
             if (secondaryTts != null) { try { secondaryTts.shutdown(); } catch (Exception ignored) {} }
             if (!sEng.isEmpty()) {
-                secondaryTts = new TextToSpeech(this, status -> {
-                    if (status == TextToSpeech.SUCCESS) { isSecondaryReady = true; applyAudioRouting(secondaryTts, sEng); }
-                }, sEng);
+                secondaryTts = new TextToSpeech(this, status -> { if (status == TextToSpeech.SUCCESS) isSecondaryReady = true; }, sEng);
             } else { secondaryTts = null; }
+        }
+
+        // 🔥 PRE-LOAD VOICES TAB ENGINES (Vocalizer/Eloquence) 🔥
+        Set<String> keys = prefs.getStringSet("configured_lang_keys", new HashSet<>());
+        for (String k : keys) {
+            try {
+                JSONObject obj = new JSONObject(prefs.getString(k, ""));
+                String ePkg = obj.optString("engine_pkg", "");
+                if (!ePkg.isEmpty() && !"disabled".equals(ePkg)) {
+                    getOrCreateEngine(ePkg);
+                }
+            } catch(Exception ignored){}
         }
     }
 
@@ -73,26 +81,10 @@ public class SpeechPlusService extends TextToSpeechService {
         return p.contains("eloquence") || p.contains("smartvoice") || p.contains("codefactory") || p.contains("vocalizer");
     }
 
-    private void applyAudioRouting(TextToSpeech engine, String pkgName) {
-        if (engine == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
-        try {
-            if (isLegacyEngine(pkgName)) return; // DO NOT crash legacy engines with AudioAttributes
-            int routing = prefs.getInt("audio_routing", 0);
-            AudioAttributes.Builder attrs = new AudioAttributes.Builder();
-            if (routing == 1) {
-                attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
-            } else {
-                attrs.setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
-            }
-            engine.setAudioAttributes(attrs.build());
-        } catch (Throwable ignored) {}
-    }
-
     private boolean containsRegional(String text) {
         return text != null && REGIONAL_PATTERN.matcher(text).find();
     }
 
-    // 100% TalkBack Crash Fix
     @Override
     protected int onIsLanguageAvailable(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
     @Override
@@ -104,6 +96,9 @@ public class SpeechPlusService extends TextToSpeechService {
     protected void onStop() {
         if (primaryTts != null) { try { primaryTts.stop(); } catch (Exception ignored) {} }
         if (secondaryTts != null) { try { secondaryTts.stop(); } catch (Exception ignored) {} }
+        for (TextToSpeech tts : extraEngines.values()) {
+            if (tts != null) { try { tts.stop(); } catch (Exception ignored) {} }
+        }
     }
 
     @Override
@@ -117,13 +112,6 @@ public class SpeechPlusService extends TextToSpeechService {
         text = text.trim();
         initEngines();
 
-        int routing = prefs.getInt("audio_routing", 0);
-        if (routing != lastAudioRouting) {
-            lastAudioRouting = routing;
-            applyAudioRouting(primaryTts, currentPrimaryEngine);
-            applyAudioRouting(secondaryTts, currentSecondaryEngine);
-        }
-
         boolean forceRate = prefs.getBoolean("force_rate", true);
         boolean forcePitch = prefs.getBoolean("force_pitch", true);
         float speechRate = forceRate ? (prefs.getInt("voice_tab_rate_progress", 20) / 20.0f) : (request.getSpeechRate() / 100.0f);
@@ -133,6 +121,8 @@ public class SpeechPlusService extends TextToSpeechService {
 
         Bundle params = new Bundle();
         params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, prefs.getInt("voice_tab_volume", 100) / 100.0f);
+        
+        int routing = prefs.getInt("audio_routing", 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, routing == 1 ? AudioManager.STREAM_ACCESSIBILITY : AudioManager.STREAM_MUSIC);
         }
@@ -141,7 +131,7 @@ public class SpeechPlusService extends TextToSpeechService {
         onStop(); // Zero Lag Cutoff
 
         if (mode == 0) {
-            speakOnEngine(primaryTts, isPrimaryReady, text, speechRate, pitch, params, true, "");
+            speakOnEngine(primaryTts, isPrimaryReady, text, speechRate, pitch, params, true, "", currentPrimaryEngine);
         } else {
             synthesizeSmartDual(text, speechRate, pitch, params);
         }
@@ -151,7 +141,7 @@ public class SpeechPlusService extends TextToSpeechService {
     }
 
     private void synthesizeSmartDual(String text, float baseRate, float basePitch, Bundle baseParams) {
-        Pattern pattern = Pattern.compile("([\\p{IsDevanagari}]+)|([^\\p{IsDevanagari}]+)");
+        Pattern pattern = Pattern.compile("([\\p{IsDevanagari}\\p{IsBengali}\\p{IsTamil}\\p{IsTelugu}\\p{IsGujarati}\\p{IsMalayalam}\\p{IsKannada}\\p{IsOriya}\\p{IsGurmukhi}]+)|([^\\p{IsDevanagari}\\p{IsBengali}\\p{IsTamil}\\p{IsTelugu}\\p{IsGujarati}\\p{IsMalayalam}\\p{IsKannada}\\p{IsOriya}\\p{IsGurmukhi}]+)");
         Matcher matcher = pattern.matcher(text);
         boolean isFirst = true;
 
@@ -159,11 +149,10 @@ public class SpeechPlusService extends TextToSpeechService {
             String chunk = matcher.group().trim();
             if (chunk.isEmpty()) continue;
 
-            boolean isHindi = containsRegional(chunk);
-            String langCode = isHindi ? "hi" : "en";
+            boolean isRegional = containsRegional(chunk);
+            String langCode = isRegional ? "hi" : "en";
             
-            // 🔥 RESTORED: This links to your "Voices" tab settings (e.g. Hindi -> Vocalizer) 🔥
-            JSONObject langConfig = findLanguageConfig(langCode, "", chunk);
+            JSONObject langConfig = findLanguageConfig(langCode, chunk);
             if (langConfig != null) {
                 String engPkg = langConfig.optString("engine_pkg", "");
                 if (!"disabled".equals(engPkg)) {
@@ -173,29 +162,49 @@ public class SpeechPlusService extends TextToSpeechService {
                     chunkParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, langConfig.optInt("volume", 100) / 100.0f);
 
                     TextToSpeech targetTts = getOrCreateEngine(engPkg);
-                    if (targetTts != null && isEngineReady(engPkg, targetTts)) {
+                    if (targetTts != null) {
                         applyVoiceAndLocale(targetTts, langCode, langConfig.optString("voice_variant", "Default"));
-                        speakOnEngine(targetTts, true, chunk, langRate, langPitch, chunkParams, isFirst, langCode);
+                        speakOnEngine(targetTts, true, chunk, langRate, langPitch, chunkParams, isFirst, langCode, engPkg);
                         isFirst = false;
                         continue;
                     }
                 }
             }
 
-            // Fallback if Voices tab is not set
-            TextToSpeech target = (isHindi && isSecondaryReady && secondaryTts != null) ? secondaryTts : primaryTts;
-            boolean ready = (isHindi && isSecondaryReady && secondaryTts != null) ? isSecondaryReady : isPrimaryReady;
-            speakOnEngine(target, ready, chunk, baseRate, basePitch, baseParams, isFirst, langCode);
+            // Fallback Engine
+            TextToSpeech target = (isRegional && isSecondaryReady && secondaryTts != null) ? secondaryTts : primaryTts;
+            boolean ready = (isRegional && isSecondaryReady && secondaryTts != null) ? isSecondaryReady : isPrimaryReady;
+            String engPkg = (isRegional && isSecondaryReady && secondaryTts != null) ? currentSecondaryEngine : currentPrimaryEngine;
+            speakOnEngine(target, ready, chunk, baseRate, basePitch, baseParams, isFirst, langCode, engPkg);
             isFirst = false;
         }
     }
 
-    private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush, String langCode) {
+    private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush, String langCode, String enginePkg) {
         if (tts != null && isReady) {
             try {
                 if (langCode != null && !langCode.isEmpty()) { tts.setLanguage(Locale.forLanguageTag(langCode)); }
                 tts.setSpeechRate(rate); tts.setPitch(pitch);
-                tts.speak(text, flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, params, "SP_" + System.currentTimeMillis());
+                
+                // 🔥 THE SILENCE BUG FIX 🔥
+                Bundle safeParams = new Bundle(params);
+                boolean strip = prefs.getBoolean("strip_attributes", false);
+                // If it's a legacy engine (Eloquence/Vocalizer) or user checked strip attributes, REMOVE THE CRASHING PARAMETER
+                if (isLegacyEngine(enginePkg) || strip) {
+                    safeParams.remove(TextToSpeech.Engine.KEY_PARAM_STREAM);
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    // Safe to apply AudioAttributes for modern engines (like Google)
+                    int routing = prefs.getInt("audio_routing", 0);
+                    AudioAttributes.Builder attrs = new AudioAttributes.Builder();
+                    if (routing == 1) {
+                        attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                    } else {
+                        attrs.setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                    }
+                    try { tts.setAudioAttributes(attrs.build()); } catch(Throwable ignored){}
+                }
+
+                tts.speak(text, flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, safeParams, "SP_" + System.currentTimeMillis());
             } catch (Exception ignored) {}
         }
     }
@@ -205,21 +214,13 @@ public class SpeechPlusService extends TextToSpeechService {
         if (pkg.equals(currentPrimaryEngine)) return primaryTts;
         if (pkg.equals(currentSecondaryEngine)) return secondaryTts;
         if (extraEngines.containsKey(pkg)) return extraEngines.get(pkg);
-        TextToSpeech engine = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) synchronized (readyExtraEngines) { readyExtraEngines.add(pkg); }
-        }, pkg);
+        
+        TextToSpeech engine = new TextToSpeech(this, status -> {}, pkg);
         extraEngines.put(pkg, engine);
         return engine;
     }
 
-    private synchronized boolean isEngineReady(String pkg, TextToSpeech engine) {
-        if (engine == null) return false;
-        if (engine == primaryTts) return isPrimaryReady;
-        if (engine == secondaryTts) return isSecondaryReady;
-        synchronized (readyExtraEngines) { return readyExtraEngines.contains(pkg); }
-    }
-
-    private JSONObject findLanguageConfig(String reqLang, String reqCountry, String text) {
+    private JSONObject findLanguageConfig(String reqLang, String text) {
         if (prefs == null) return null;
         Set<String> configuredKeys = prefs.getStringSet("configured_lang_keys", null);
         if (configuredKeys == null || configuredKeys.isEmpty()) return null;
