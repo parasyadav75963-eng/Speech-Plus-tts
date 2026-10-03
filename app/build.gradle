@@ -6,6 +6,9 @@ android {
     namespace 'com.speechplus.tts'
     compileSdk 34
 
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId "com.speechplus.tts"
         minSdk 21

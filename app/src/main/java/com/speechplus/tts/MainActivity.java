@@ -1032,10 +1032,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     private void showWhatsNewDialogIfNeeded() {
+        String currentAppVersion = "1.4.4";
+        try {
+            currentAppVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception ignored) {}
+        final String appVer = currentAppVersion;
+
         android.content.SharedPreferences sp = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
         String savedVer = sp.getString("whats_new_dismissed_ver", "");
-        if (BuildConfig.VERSION_NAME.equals(savedVer)) return;
+        if (appVer.equals(savedVer)) return;
 
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -1061,7 +1068,7 @@ public class MainActivity extends AppCompatActivity {
                 .setView(layout)
                 .setPositiveButton("GOT IT", (d, w) -> {
                     if (cb.isChecked()) {
-                        sp.edit().putString("whats_new_dismissed_ver", BuildConfig.VERSION_NAME).apply();
+                        sp.edit().putString("whats_new_dismissed_ver", appVer).apply();
                     }
                 })
                 .setCancelable(false)
