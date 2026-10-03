@@ -579,7 +579,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="About Interested Technology for Blind"
+                    android:text="About Developer: Paras Yadav"
                     android:textColor="#03DAC5"
                     android:textSize="16sp"
                     android:textStyle="bold"
@@ -589,7 +589,7 @@
                     android:id="@+id/tvAboutExcerpt"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Speech Plus TTS is built with a Zero-Lag mission for visually impaired users. Developer: Paras Yadav. Join our community for voice-first Android innovations, accessible gaming, and peer guidance.\n\nBlindness meets brilliance!"
+                    android:text="Speech Plus TTS is built with a Zero-Lag mission for visually impaired users. Developer: Paras Yadav. Join our community for voice-first Android innovations, accessible gaming, and peer guidance.\n\nDeveloper: Paras Yadav. Speech Plus TTS."
                     android:textColor="#CCCCCC"
                     android:textSize="14sp"
                     android:lineSpacingExtra="4dp" />

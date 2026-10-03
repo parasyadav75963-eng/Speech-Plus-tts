@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        showWhatsNewDialogIfNeeded();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -526,7 +525,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         seekVoiceRate.setMax(100);
-        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 50));
+        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 20));
         updateRateLabel();
 
         seekVoiceRate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -552,7 +551,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         seekVoicePitch.setMax(100);
-        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 50));
+        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 20));
         updatePitchLabel();
 
         seekVoicePitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -593,8 +592,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnDefaultVoice.setOnClickListener(v -> {
-            seekVoiceRate.setProgress(50);
-            seekVoicePitch.setProgress(50);
+            seekVoiceRate.setProgress(20);
+            seekVoicePitch.setProgress(20);
             seekVoiceVolume.setProgress(100);
             Toast.makeText(this, "Voice parameters reset to default 1.0x", Toast.LENGTH_SHORT).show();
         });
@@ -756,8 +755,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         spinnerVoiceEngine.setSelection(0);
-        seekVoiceRate.setProgress(50);
-        seekVoicePitch.setProgress(50);
+        seekVoiceRate.setProgress(20);
+        seekVoicePitch.setProgress(20);
         seekVoiceVolume.setProgress(100);
         updateRateLabel();
         updatePitchLabel();
