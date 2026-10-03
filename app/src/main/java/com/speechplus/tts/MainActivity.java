@@ -1030,7 +1030,7 @@ public class MainActivity extends AppCompatActivity {
             try { activeVoiceTestTts.shutdown(); } catch (Exception ignored) {}
         }
     }
-}
+
 
     private void showWhatsNewDialogIfNeeded() {
         android.content.SharedPreferences sp = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
@@ -1067,3 +1067,4 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .show();
     }
+}
