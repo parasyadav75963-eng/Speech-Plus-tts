@@ -905,7 +905,7 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(() -> {
             try {
-                URL url = new URL("https://api.github.com/repos/nitingautam3824/SpeechPlusTTS/releases/latest");
+                URL url = new URL("https://api.github.com/repos/parasyadav75963-eng/Speech-Plus-tts/releases/latest");
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setRequestProperty("User-Agent", "SpeechPlusTTS-App");
