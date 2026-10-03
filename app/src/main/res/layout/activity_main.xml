@@ -79,9 +79,32 @@
 
                 <Spinner
                     android:id="@+id/spinnerModes"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginBottom="16dp" />
+
+                <RadioGroup
+                    android:id="@+id/radioGroupModes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+                    <RadioButton
+                        android:id="@+id/radioMode0"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mode 0: Single Engine Mode" />
+                    <RadioButton
+                        android:id="@+id/radioMode1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mode 1: Auto Detect Language Mode" />
+                    <RadioButton
+                        android:id="@+id/radioMode2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mode 2: Mixed Regional / Dual Mode" />
+                </RadioGroup>
 
                 <TextView
                     android:id="@+id/lblPrimaryEngine" android:visibility="gone"

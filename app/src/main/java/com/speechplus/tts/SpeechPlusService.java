@@ -270,9 +270,21 @@ public class SpeechPlusService extends TextToSpeechService {
     }
 
     private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush) {
-        if (tts == null || !isReady) { if (primaryTts != null && isPrimaryReady) { tts = primaryTts; isReady = true; } else if (secondaryTts != null && isSecondaryReady) { tts = secondaryTts; isReady = true; } else { tts = getOrCreateEngine("com.google.android.tts"); isReady = (tts != null); } }
+        speakOnEngine(tts, isReady, text, rate, pitch, params, flush, "");
+    }
+    private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush, String langCode) {
+        if (tts == null || !isReady) {
+            if (primaryTts != null && isPrimaryReady) { tts = primaryTts; isReady = true; }
+            else if (secondaryTts != null && isSecondaryReady) { tts = secondaryTts; isReady = true; }
+            else { tts = getOrCreateEngine("com.google.android.tts"); isReady = (tts != null); }
+        }
         if (tts != null && isReady) {
             try {
+                if (langCode != null && !langCode.isEmpty()) {
+                    String[] parts = langCode.split("-");
+                    java.util.Locale loc = (parts.length > 1) ? new java.util.Locale(parts[0], parts[1]) : new java.util.Locale(parts[0]);
+                    tts.setLanguage(loc);
+                }
                 tts.setSpeechRate(rate);
                 tts.setPitch(pitch);
                 int queueMode = flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
