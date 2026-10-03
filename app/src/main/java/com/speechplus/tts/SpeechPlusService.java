@@ -122,6 +122,7 @@ public class SpeechPlusService extends TextToSpeechService {
     @Override
     protected int onIsLanguageAvailable(String lang, String country, String variant) {
         return TextToSpeech.LANG_AVAILABLE;
+        return TextToSpeech.LANG_AVAILABLE;
     }
 
     @Override
