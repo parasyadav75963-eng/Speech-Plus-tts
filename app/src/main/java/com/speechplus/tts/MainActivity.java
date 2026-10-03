@@ -542,12 +542,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnRateMinus.setOnClickListener(v -> {
-            int p = Math.max(0, seekVoiceRate.getProgress() - 5);
+            int p = Math.max(0, seekVoiceRate.getProgress() - 1);
             seekVoiceRate.setProgress(p);
         });
 
         btnRatePlus.setOnClickListener(v -> {
-            int p = Math.min(100, seekVoiceRate.getProgress() + 5);
+            int p = Math.min(100, seekVoiceRate.getProgress() + 1);
             seekVoiceRate.setProgress(p);
         });
 
@@ -568,12 +568,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnPitchMinus.setOnClickListener(v -> {
-            int p = Math.max(0, seekVoicePitch.getProgress() - 5);
+            int p = Math.max(0, seekVoicePitch.getProgress() - 1);
             seekVoicePitch.setProgress(p);
         });
 
         btnPitchPlus.setOnClickListener(v -> {
-            int p = Math.min(100, seekVoicePitch.getProgress() + 5);
+            int p = Math.min(100, seekVoicePitch.getProgress() + 1);
             seekVoicePitch.setProgress(p);
         });
 
