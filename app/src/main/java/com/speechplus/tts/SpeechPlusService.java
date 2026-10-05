@@ -180,32 +180,60 @@ public class SpeechPlusService extends TextToSpeechService {
         }
     }
 
+
     private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush, String langCode, String enginePkg) {
         if (tts != null && isReady) {
             try {
-                if (langCode != null && !langCode.isEmpty()) { tts.setLanguage(Locale.forLanguageTag(langCode)); }
-                tts.setSpeechRate(rate); tts.setPitch(pitch);
-                
-                // 🔥 THE SILENCE BUG FIX 🔥
-                Bundle safeParams = new Bundle(params);
+                if (langCode != null && !langCode.isEmpty()) {
+                    try {
+                        tts.setLanguage(Locale.forLanguageTag(langCode));
+                    } catch (Throwable ignored) {
+                    }
+                }
+
+                tts.setSpeechRate(rate);
+                tts.setPitch(pitch);
+
+                Bundle safeParams = params != null ? new Bundle(params) : new Bundle();
+
                 boolean strip = prefs.getBoolean("strip_attributes", false);
-                // If it's a legacy engine (Eloquence/Vocalizer) or user checked strip attributes, REMOVE THE CRASHING PARAMETER
+
                 if (isLegacyEngine(enginePkg) || strip) {
                     safeParams.remove(TextToSpeech.Engine.KEY_PARAM_STREAM);
                 } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    // Safe to apply AudioAttributes for modern engines (like Google)
                     int routing = prefs.getInt("audio_routing", 0);
                     AudioAttributes.Builder attrs = new AudioAttributes.Builder();
+
                     if (routing == 1) {
-                        attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                        attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
                     } else {
-                        attrs.setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                        attrs.setUsage(AudioAttributes.USAGE_MEDIA)
+                             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
                     }
-                    try { tts.setAudioAttributes(attrs.build()); } catch(Throwable ignored){}
+
+                    try {
+                        tts.setAudioAttributes(attrs.build());
+                    } catch (Throwable ignored) {
+                    }
                 }
 
-                tts.speak(text, flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, safeParams, "SP_" + System.currentTimeMillis());
-            } catch (Exception ignored) {}
+                int result = tts.speak(
+                        text,
+                        flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD,
+                        safeParams,
+                        "SP_" + System.currentTimeMillis()
+                );
+
+                if (result == TextToSpeech.ERROR) {
+                    android.util.Log.e("SpeechPlusTTS",
+                            "TTS speak() returned ERROR. Engine=" + enginePkg);
+                }
+
+            } catch (Throwable e) {
+                android.util.Log.e("SpeechPlusTTS",
+                        "TTS speak exception. Engine=" + enginePkg, e);
+            }
         }
     }
 
