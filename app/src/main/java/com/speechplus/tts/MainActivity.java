@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        if (btnTestVoice != null) btnTestVoice.setVisibility(android.view.View.GONE);
+        
         btnStopSpeaking.setOnClickListener(v -> stopSpeaking());
     }
 
