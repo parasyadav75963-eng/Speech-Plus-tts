@@ -744,7 +744,7 @@ public class MainActivity extends AppCompatActivity {
         String[] streams = {"0: Media Stream (STREAM_MUSIC)", "1: Accessibility Stream (STREAM_ACCESSIBILITY)"};
         ArrayAdapter<String> streamAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, streams);
         spinnerAudioRouting.setAdapter(streamAdapter);
-        int savedRouting = prefs.getInt("audio_routing", 0);
+        int savedRouting = prefs.getInt("audio_routing", 1);
         spinnerAudioRouting.setSelection(Math.min(savedRouting, streams.length - 1));
 
         spinnerAudioRouting.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
