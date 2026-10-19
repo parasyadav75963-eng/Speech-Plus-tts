@@ -81,11 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Tab 1 (Modes) views
     private Spinner spinnerModes;
-    private Spinner spinnerEngines;
-    private Spinner spinnerSecondaryEngines;
-    private LinearLayout layoutSecondary;
-    private Button btnTestVoice;
-    private Button btnStopSpeaking;
+    
 
     // Tab 2 (Languages) views
     private Button btnSelectAllLangs;
@@ -113,12 +109,9 @@ public class MainActivity extends AppCompatActivity {
 
     // Tab 4 (Advanced) views
     private Spinner spinnerAudioRouting;
-    private CheckBox chkAmplifyVolume;
-    private CheckBox chkKeepAlive;
     private CheckBox chkForceRate;
     private CheckBox chkForcePitch;
     private CheckBox chkStripAttributes;
-    private CheckBox chkQuickChar;
     private Button btnIgnoreBattery;
 
     // Tab 5 (More) views
@@ -180,11 +173,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Modes
         spinnerModes = findViewById(R.id.spinnerModes);
-        spinnerEngines = findViewById(R.id.spinnerEngines);
-        spinnerSecondaryEngines = findViewById(R.id.spinnerSecondaryEngines);
-        layoutSecondary = findViewById(R.id.layoutSecondary);
-        btnTestVoice = findViewById(R.id.btnTestVoice);
-        btnStopSpeaking = findViewById(R.id.btnStopSpeaking);
+        
 
         // Languages
         btnSelectAllLangs = findViewById(R.id.btnSelectAllLangs);
@@ -212,12 +201,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Advanced
         spinnerAudioRouting = findViewById(R.id.spinnerAudioRouting);
-        chkAmplifyVolume = findViewById(R.id.chkAmplifyVolume);
-        chkKeepAlive = findViewById(R.id.chkKeepAlive);
         chkForceRate = findViewById(R.id.chkForceRate);
         chkForcePitch = findViewById(R.id.chkForcePitch);
         chkStripAttributes = findViewById(R.id.chkStripAttributes);
-        chkQuickChar = findViewById(R.id.chkQuickChar);
         btnIgnoreBattery = findViewById(R.id.btnIgnoreBattery);
 
         // More
@@ -403,46 +389,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 prefs.edit().putInt("tts_mode", position).apply();
-                layoutSecondary.setVisibility(View.GONE);
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        ArrayAdapter<EngineInfo> engAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, installedEngines);
-        spinnerEngines.setAdapter(engAdapter);
-        spinnerSecondaryEngines.setAdapter(engAdapter);
-
-        String pSaved = prefs.getString("primary_engine", prefs.getString("selected_engine", ""));
-        String sSaved = prefs.getString("secondary_engine", "");
-
-        for (int i = 0; i < installedEngines.size(); i++) {
-            if (installedEngines.get(i).name.equals(pSaved)) spinnerEngines.setSelection(i);
-            if (installedEngines.get(i).name.equals(sSaved)) spinnerSecondaryEngines.setSelection(i);
-        }
-
-        spinnerEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String pkg = installedEngines.get(position).name;
-                prefs.edit().putString("primary_engine", pkg).putString("selected_engine", pkg).apply();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        spinnerSecondaryEngines.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String pkg = installedEngines.get(position).name;
-                prefs.edit().putString("secondary_engine", pkg).apply();
+                
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
         
-        btnStopSpeaking.setOnClickListener(v -> stopSpeaking());
     }
 
     private void setupTabLanguages() {
@@ -847,12 +800,6 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        chkAmplifyVolume.setChecked(prefs.getBoolean("amplify_volume", true));
-        chkAmplifyVolume.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("amplify_volume", isChecked).apply());
-
-        chkKeepAlive.setChecked(prefs.getBoolean("keep_alive", true));
-        chkKeepAlive.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("keep_alive", isChecked).apply());
-
         chkForceRate.setChecked(prefs.getBoolean("force_rate", true));
         chkForceRate.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("force_rate", isChecked).apply());
 
@@ -861,9 +808,6 @@ public class MainActivity extends AppCompatActivity {
 
         chkStripAttributes.setChecked(prefs.getBoolean("strip_attributes", false));
         chkStripAttributes.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("strip_attributes", isChecked).apply());
-
-        chkQuickChar.setChecked(prefs.getBoolean("quick_char", false));
-        chkQuickChar.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("quick_char", isChecked).apply());
 
         btnIgnoreBattery.setOnClickListener(v -> requestIgnoreBatteryOptimization());
     }
@@ -1066,29 +1010,6 @@ public class MainActivity extends AppCompatActivity {
         }, engPkg);
     }
 
-    private void testSpeak(String text) {
-        if (activeVoiceTestTts != null) {
-            try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}
-        }
-
-        String eng = prefs.getString("primary_engine", prefs.getString("selected_engine", ""));
-        activeVoiceTestTts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS && activeVoiceTestTts != null) {
-                float rate = prefs.getBoolean("force_rate", true) ? prefs.getFloat("rate", 1.0f) : 1.0f;
-                float pitch = prefs.getBoolean("force_pitch", true) ? prefs.getFloat("pitch", 1.0f) : 1.0f;
-                activeVoiceTestTts.setSpeechRate(rate);
-                activeVoiceTestTts.setPitch(pitch);
-                activeVoiceTestTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "test_id");
-            }
-        }, eng.isEmpty() ? null : eng);
-    }
-
-    private void stopSpeaking() {
-        if (activeVoiceTestTts != null) {
-            try { activeVoiceTestTts.stop(); } catch (Exception ignored) {}
-        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -1103,7 +1024,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void showWhatsNewDialogIfNeeded() {
-        String currentAppVersion = "1.4.4";
+        String currentAppVersion = "1.6.0";
         try {
             currentAppVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         } catch (Exception ignored) {}
@@ -1120,11 +1041,7 @@ public class MainActivity extends AppCompatActivity {
         android.widget.TextView tv = new android.widget.TextView(this);
         tv.setTextSize(14f);
         tv.setTextColor(android.graphics.Color.LTGRAY);
-        tv.setText("• Permanent Eloquence Fix: Completely resolved crash across TalkBack and system settings.\n" +
-                "• Native Voice Preview: Live test natively speaks in the selected language.\n" +
-                "• Clean Global Languages (A-Z): Unified list of all world & Indian languages without duplicate accents.\n" +
-                "• Smart Dual Auto-Switch: Real-time zero-lag text script routing between Primary and Secondary engines.\n" +
-                "• Accurate Update Checker: Confirms when you are already on the latest release.");
+        tv.setText("• 🔥 Auto TTS Integration: ML Kit की मदद से 100+ भाषाओं को अपने-आप पहचानता है।\n• 🧹 UI Cleaned: बेकार के फीचर्स को हटाकर ऐप को हल्का बनाया गया है।\n• 🚀 Zero Lag: आवाज़ों के बीच सुपर-फ़ास्ट स्विचिंग।");
         layout.addView(tv);
 
         android.widget.CheckBox cb = new android.widget.CheckBox(this);
@@ -1133,7 +1050,7 @@ public class MainActivity extends AppCompatActivity {
         layout.addView(cb);
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("What's New in Speech Plus TTS v1.4.4")
+                .setTitle("What's New in Speech Plus TTS v1.6.0")
                 .setView(layout)
                 .setPositiveButton("GOT IT", (d, w) -> {
                     if (cb.isChecked()) {

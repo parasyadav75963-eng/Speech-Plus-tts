@@ -106,74 +106,7 @@
                         android:text="Mode 2: Mixed Regional / Dual Mode" />
                 </RadioGroup>
 
-                <TextView
-                    android:id="@+id/lblPrimaryEngine" android:visibility="gone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Primary TTS Engine (Latin / English / Default)"
-                    android:textColor="#03DAC5"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="6dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerEngines" 
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginBottom="16dp" />
-
-                <LinearLayout
-                    android:id="@+id/layoutSecondary" android:visibility="gone"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Secondary TTS Engine (Regional / Devanagari)"
-                        android:textColor="#03DAC5"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="6dp" />
-
-                    <Spinner
-                        android:id="@+id/spinnerSecondaryEngines"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginBottom="16dp" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Quick Voice Test"
-                    android:textColor="#03DAC5"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnTestVoice"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        android:text="Test Voice" />
-
-                    <Button
-                        android:id="@+id/btnStopSpeaking"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Stop" />
-                </LinearLayout>
+                
 
             </LinearLayout>
         </ScrollView>
@@ -475,22 +408,6 @@
                     android:layout_marginBottom="16dp" />
 
                 <CheckBox
-                    android:id="@+id/chkAmplifyVolume"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Volume Amplification (Boost Audio)"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginBottom="8dp" />
-
-                <CheckBox
-                    android:id="@+id/chkKeepAlive"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Keep TTS Engine Always Alive (Prevent Cold Start Lag)"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginBottom="8dp" />
-
-                <CheckBox
                     android:id="@+id/chkForceRate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -513,14 +430,6 @@
                     android:text="Remove Audio Attributes (Fix Cutoff on Samsung/Realme)"
                     android:textColor="#FFFFFF"
                     android:layout_marginBottom="8dp" />
-
-                <CheckBox
-                    android:id="@+id/chkQuickChar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Quick Character Read (0ms Typing Feedback)"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginBottom="16dp" />
 
                 <Button
                     android:id="@+id/btnIgnoreBattery"

@@ -14,6 +14,9 @@ import android.speech.tts.SynthesisCallback;
 import android.speech.tts.SynthesisRequest;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeechService;
+import com.google.mlkit.nl.languageid.LanguageIdentification;
+import com.google.mlkit.nl.languageid.LanguageIdentifier;
+import com.google.android.gms.tasks.Tasks;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
@@ -63,7 +66,7 @@ public class SpeechPlusService extends TextToSpeechService {
         return p.contains("eloquence") || p.contains("smartvoice") || p.contains("vocalizer");
     }
 
-    private boolean containsRegional(String text) { return text != null && REGIONAL_PATTERN.matcher(text).find(); }
+    
     
     @Override protected int onIsLanguageAvailable(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
     @Override protected String[] onGetLanguage() { return new String[]{"hin", "IND", ""}; }
@@ -105,24 +108,48 @@ public class SpeechPlusService extends TextToSpeechService {
         if (prefs.getInt("tts_mode", 0) == 0) {
             speakOnEngine(primaryTts, isPrimaryReady, text, speechRate, pitch, params, true, "", currentPrimaryEngine);
         } else {
-            synthesizeSmartDual(text, speechRate, pitch, params);
+            synthesizeAutoTTS(text, speechRate, pitch, params);
         }
 
         callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1); callback.done();
     }
 
-    private void synthesizeSmartDual(String text, float baseRate, float basePitch, Bundle baseParams) {
-        Matcher matcher = Pattern.compile("([\\p{IsDevanagari}\\p{IsBengali}\\p{IsTamil}\\p{IsTelugu}\\p{IsGujarati}\\p{IsMalayalam}\\p{IsKannada}\\p{IsOriya}\\p{IsGurmukhi}]+)|([^\\p{IsDevanagari}\\p{IsBengali}\\p{IsTamil}\\p{IsTelugu}\\p{IsGujarati}\\p{IsMalayalam}\\p{IsKannada}\\p{IsOriya}\\p{IsGurmukhi}]+)").matcher(text);
+    private void synthesizeAutoTTS(String text, float baseRate, float basePitch, Bundle baseParams) {
+        String[] chunks = text.split("(?<=[.!?,\n])\\s+|\\s+(?=[A-Z])");
+        LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
         boolean isFirst = true;
 
-        while (matcher.find()) {
-            String chunk = matcher.group().trim();
+        for (String chunk : chunks) {
+            chunk = chunk.trim();
             if (chunk.isEmpty()) continue;
-            boolean isRegional = containsRegional(chunk);
-            TextToSpeech target = (isRegional && isSecondaryReady && secondaryTts != null) ? secondaryTts : primaryTts;
-            boolean ready = (isRegional && isSecondaryReady && secondaryTts != null) ? isSecondaryReady : isPrimaryReady;
-            String engPkg = (isRegional && isSecondaryReady && secondaryTts != null) ? currentSecondaryEngine : currentPrimaryEngine;
-            speakOnEngine(target, ready, chunk, baseRate, basePitch, baseParams, isFirst, isRegional ? "hi" : "en", engPkg);
+
+            String langCode = "en";
+            try {
+                String detectedLang = Tasks.await(languageIdentifier.identifyLanguage(chunk));
+                if (!"und".equals(detectedLang)) {
+                    langCode = detectedLang;
+                }
+            } catch (Exception ignored) {}
+
+            JSONObject langConfig = findLanguageConfig(langCode, chunk);
+            if (langConfig != null) {
+                String engPkg = langConfig.optString("engine_pkg", "");
+                if (!"disabled".equals(engPkg)) {
+                    float langRate = (float) langConfig.optDouble("rate", baseRate);
+                    float langPitch = (float) langConfig.optDouble("pitch", basePitch);
+                    Bundle chunkParams = new Bundle(baseParams);
+                    chunkParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, langConfig.optInt("volume", 100) / 100.0f);
+
+                    TextToSpeech targetTts = getOrCreateEngine(engPkg);
+                    if (targetTts != null) {
+                        applyVoiceAndLocale(targetTts, langCode, langConfig.optString("voice_variant", "Default"));
+                        speakOnEngine(targetTts, true, chunk, langRate, langPitch, chunkParams, isFirst, langCode, engPkg);
+                        isFirst = false;
+                        continue;
+                    }
+                }
+            }
+            speakOnEngine(primaryTts, isPrimaryReady, chunk, baseRate, basePitch, baseParams, isFirst, langCode, currentPrimaryEngine);
             isFirst = false;
         }
     }
