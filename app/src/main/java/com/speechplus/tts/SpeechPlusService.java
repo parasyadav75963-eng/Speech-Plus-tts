@@ -65,7 +65,7 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override protected void onStop() {
         isCancelled = true;
-        internalStop(); // सिर्फ स्वाइप करने पर ही इंजन रुकेगा
+        internalStop(); // स्वाइप करने पर इंजन को तुरंत रोकेगा
     }
 
     @Override protected synchronized void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
@@ -89,18 +89,10 @@ public class SpeechPlusService extends TextToSpeechService {
 
         int mode = prefs.getInt("tts_mode", 0);
         
-        // 🔥 BIG FIX: यहाँ से 'internalStop()' हटा दिया गया है ताकि टाइपिंग के अक्षर न कटें।
-        
         if (mode == 0) {
             speakOnEngineAndWait(primaryTts, isPrimaryReady, text, speechRate, pitch, params, "", currentPrimaryEngine);
         } else {
-            // 🔥 FAST-PATH FIX: छोटे शब्दों और स्पेलिंग को तुरंत पढ़ेगा, ML Kit का इंतज़ार नहीं करेगा।
-            if (text.length() <= 5 || !text.contains(" ")) {
-                String quickLang = text.matches(".*[\\u0900-\\u097F].*") ? "hi" : "en";
-                routeToEngine(text, speechRate, pitch, params, quickLang);
-            } else {
-                synthesizeAutoTTS(text, speechRate, pitch, params);
-            }
+            synthesizeAutoTTS(text, speechRate, pitch, params);
         }
         
         callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1); 
@@ -108,7 +100,8 @@ public class SpeechPlusService extends TextToSpeechService {
     }
 
     private void synthesizeAutoTTS(String text, float baseRate, float basePitch, Bundle baseParams) {
-        String[] chunks = text.split("(?<=[.!?\\n])\\s+"); 
+        // 🔥 BIG FIX 1: इंग्लिश और हिंदी मिक्स को बिल्कुल सटीक अलग करेगा (जैसे: "Dushyant कैसे हो" -> ["Dushyant", "कैसे हो"])
+        String[] chunks = text.split("(?<=[.!?\\n])\\s+|(?<=[a-zA-Z0-9])\\s*(?=[\\u0900-\\u097F])|(?<=[\\u0900-\\u097F])\\s*(?=[a-zA-Z0-9])"); 
         LanguageIdentifier langId = LanguageIdentification.getClient();
         
         for (String chunk : chunks) {
@@ -116,8 +109,11 @@ public class SpeechPlusService extends TextToSpeechService {
             chunk = chunk.trim(); if (chunk.isEmpty()) continue;
             
             String langCode = "en";
-            try { String dl = Tasks.await(langId.identifyLanguage(chunk)); if (!"und".equals(dl)) langCode = dl; } catch (Exception ignored) {}
-            if(chunk.matches(".*[\\u0900-\\u097F].*")) langCode = "hi"; 
+            if(chunk.matches(".*[\\u0900-\\u097F].*")) {
+                langCode = "hi"; // हिंदी कैरेक्टर मिलते ही स्ट्रिक्ट हिंदी सेट करेगा
+            } else if (chunk.length() > 3) {
+                try { String dl = Tasks.await(langId.identifyLanguage(chunk)); if (!"und".equals(dl)) langCode = dl; } catch (Exception ignored) {}
+            }
             
             routeToEngine(chunk, baseRate, basePitch, baseParams, langCode);
         }
@@ -131,6 +127,8 @@ public class SpeechPlusService extends TextToSpeechService {
             if (!"disabled".equals(engPkg)) {
                 float lRate = baseRate;
                 float lPitch = basePitch;
+                
+                // 🔥 BIG FIX 2: अगर Force Checkbox टिक नहीं है, तो पुरानी मोटी सेटिंग्स को 100% इग्नोर करेगा
                 if (prefs.getBoolean("force_rate", false)) lRate = (float) langConfig.optDouble("rate", baseRate);
                 if (prefs.getBoolean("force_pitch", false)) lPitch = (float) langConfig.optDouble("pitch", basePitch);
                 
@@ -155,35 +153,38 @@ public class SpeechPlusService extends TextToSpeechService {
                 tts.setSpeechRate(rate); tts.setPitch(pitch);
                 Bundle safeParams = params != null ? new Bundle(params) : new Bundle();
                 
-                // 🔥 STRICT ACCESSIBILITY AUDIO STREAM FIX
+                // 🔥 BIG FIX 3: STRICT AUDIO STREAM - अब यह हर हाल में Accessibility पर काम करेगा
                 int routing = prefs.getInt("audio_routing", 1);
                 int streamType = (routing == 1) ? AudioManager.STREAM_ACCESSIBILITY : AudioManager.STREAM_MUSIC;
                 
-                if (isLegacyEngine(enginePkg) || prefs.getBoolean("strip_attributes", false)) {
-                    safeParams.remove(TextToSpeech.Engine.KEY_PARAM_STREAM);
-                } else {
-                    safeParams.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, streamType);
-                    
+                safeParams.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, streamType);
+                safeParams.putString(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(streamType));
+                
+                // AudioAttributes को तभी हटाएंगे जब ज़रूरी हो, लेकिन KEY_PARAM_STREAM कभी डिलीट नहीं होगा
+                if (!isLegacyEngine(enginePkg) && !prefs.getBoolean("strip_attributes", false)) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         AudioAttributes.Builder attrs = new AudioAttributes.Builder();
                         if (routing == 1) {
-                            attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
-                                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                                 .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED); // यह Android को मजबूर करेगा
+                            attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
                         } else {
-                            attrs.setUsage(AudioAttributes.USAGE_MEDIA)
-                                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                            attrs.setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
                         }
                         try { tts.setAudioAttributes(attrs.build()); } catch (Throwable ignored) {}
                     }
                 }
                 
-                // 🔥 QUEUE_ADD का इस्तेमाल किया है ताकि स्पेलिंग और अक्षर आपस में न कटें
                 tts.speak(text, TextToSpeech.QUEUE_ADD, safeParams, "SP_" + System.currentTimeMillis());
                 
-                try { Thread.sleep(20); } catch (Exception ignored) {} 
+                // 🔥 BIG FIX 4: KEYBOARD SPELLING FIX - TalkBack को बेवकूफ बनाकर स्पेलिंग को कटने से रोकना
+                int waitStart = 0;
+                while (!tts.isSpeaking() && waitStart < 15 && !isCancelled) {
+                    try { Thread.sleep(10); } catch (Exception ignored) {}
+                    waitStart++;
+                }
+                
+                // जब तक इंजन अक्षर पूरा बोल नहीं लेता, तब तक TalkBack को "Done" का सिग्नल नहीं मिलेगा
                 while (tts.isSpeaking() && !isCancelled) { 
-                    try { Thread.sleep(10); } catch (Exception ignored) {} 
+                    try { Thread.sleep(15); } catch (Exception ignored) {} 
                 }
             } catch (Throwable ignored) {}
         }
