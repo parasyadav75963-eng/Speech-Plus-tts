@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNav;
 
     // Tab 1 (Modes) views
-    private Spinner spinnerModes;
+    
     
 
     // Tab 2 (Languages) views
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
         bottomNav = findViewById(R.id.bottomNavigation);
 
         // Modes
-        spinnerModes = findViewById(R.id.spinnerModes);
+        
         
 
         // Languages
@@ -333,67 +333,23 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadGlobalLanguages() {
         globalLanguages.clear();
-        globalLanguages.add(new LangItem("ar", "Arabic"));
-        globalLanguages.add(new LangItem("as", "Assamese"));
-        globalLanguages.add(new LangItem("bn", "Bengali"));
-        globalLanguages.add(new LangItem("bho", "Bhojpuri"));
-        globalLanguages.add(new LangItem("bg", "Bulgarian"));
-        globalLanguages.add(new LangItem("my", "Burmese"));
-        globalLanguages.add(new LangItem("zh", "Chinese"));
-        globalLanguages.add(new LangItem("cs", "Czech"));
-        globalLanguages.add(new LangItem("da", "Danish"));
-        globalLanguages.add(new LangItem("nl", "Dutch"));
-        globalLanguages.add(new LangItem("en", "English"));
-        globalLanguages.add(new LangItem("fi", "Finnish"));
-        globalLanguages.add(new LangItem("fr", "French"));
-        globalLanguages.add(new LangItem("de", "German"));
-        globalLanguages.add(new LangItem("el", "Greek"));
-        globalLanguages.add(new LangItem("gu", "Gujarati"));
-        globalLanguages.add(new LangItem("he", "Hebrew"));
-        globalLanguages.add(new LangItem("hi", "Hindi"));
-        globalLanguages.add(new LangItem("hu", "Hungarian"));
-        globalLanguages.add(new LangItem("id", "Indonesian"));
-        globalLanguages.add(new LangItem("it", "Italian"));
-        globalLanguages.add(new LangItem("ja", "Japanese"));
-        globalLanguages.add(new LangItem("kn", "Kannada"));
-        globalLanguages.add(new LangItem("ko", "Korean"));
-        globalLanguages.add(new LangItem("ml", "Malayalam"));
-        globalLanguages.add(new LangItem("mr", "Marathi"));
-        globalLanguages.add(new LangItem("ne", "Nepali"));
-        globalLanguages.add(new LangItem("or", "Odia"));
-        globalLanguages.add(new LangItem("fa", "Persian"));
-        globalLanguages.add(new LangItem("pl", "Polish"));
-        globalLanguages.add(new LangItem("pt", "Portuguese"));
-        globalLanguages.add(new LangItem("pa", "Punjabi"));
-        globalLanguages.add(new LangItem("ro", "Romanian"));
-        globalLanguages.add(new LangItem("ru", "Russian"));
-        globalLanguages.add(new LangItem("sa", "Sanskrit"));
-        globalLanguages.add(new LangItem("es", "Spanish"));
-        globalLanguages.add(new LangItem("sv", "Swedish"));
-        globalLanguages.add(new LangItem("ta", "Tamil"));
-        globalLanguages.add(new LangItem("te", "Telugu"));
-        globalLanguages.add(new LangItem("th", "Thai"));
-        globalLanguages.add(new LangItem("tr", "Turkish"));
-        globalLanguages.add(new LangItem("uk", "Ukrainian"));
-        globalLanguages.add(new LangItem("ur", "Urdu"));
-        globalLanguages.add(new LangItem("vi", "Vietnamese"));
+        String[] langs = {"af-ZA,Afrikaans", "sq-AL,Albanian", "am-ET,Amharic", "ar-SA,Arabic (Saudi Arabia)", "ar-AE,Arabic (UAE)", "hy-AM,Armenian", "as-IN,Assamese (India)", "az-AZ,Azerbaijani", "eu-ES,Basque", "be-BY,Belarusian", "bn-IN,Bengali (India)", "bn-BD,Bengali (Bangladesh)", "bs-BA,Bosnian", "bg-BG,Bulgarian", "my-MM,Burmese", "ca-ES,Catalan", "zh-CN,Chinese (Mandarin)", "zh-TW,Chinese (Taiwan)", "zh-HK,Chinese (Cantonese)", "hr-HR,Croatian", "cs-CZ,Czech", "da-DK,Danish", "nl-NL,Dutch", "nl-BE,Dutch (Belgium)", "en-US,English (US)", "en-GB,English (UK)", "en-IN,English (India)", "en-AU,English (Australia)", "en-CA,English (Canada)", "et-EE,Estonian", "fil-PH,Filipino", "fi-FI,Finnish", "fr-FR,French", "fr-CA,French (Canada)", "gl-ES,Galician", "ka-GE,Georgian", "de-DE,German", "el-GR,Greek", "gu-IN,Gujarati (India)", "he-IL,Hebrew", "hi-IN,Hindi (India)", "hu-HU,Hungarian", "is-IS,Icelandic", "id-ID,Indonesian", "it-IT,Italian", "ja-JP,Japanese", "jv-ID,Javanese", "kn-IN,Kannada (India)", "kk-KZ,Kazakh", "km-KH,Khmer", "ko-KR,Korean", "lo-LA,Lao", "lv-LV,Latvian", "lt-LT,Lithuanian", "mk-MK,Macedonian", "ms-MY,Malay", "ml-IN,Malayalam (India)", "mr-IN,Marathi (India)", "mn-MN,Mongolian", "ne-NP,Nepali", "no-NO,Norwegian", "or-IN,Odia (India)", "ps-AF,Pashto", "fa-IR,Persian", "pl-PL,Polish", "pt-BR,Portuguese (Brazil)", "pt-PT,Portuguese (Portugal)", "pa-IN,Punjabi (India)", "ro-RO,Romanian", "ru-RU,Russian", "sr-RS,Serbian", "si-LK,Sinhala", "sk-SK,Slovak", "sl-SI,Slovenian", "es-ES,Spanish", "es-US,Spanish (US)", "sw-KE,Swahili", "sv-SE,Swedish", "ta-IN,Tamil (India)", "te-IN,Telugu (India)", "th-TH,Thai", "tr-TR,Turkish", "uk-UA,Ukrainian", "ur-PK,Urdu", "uz-UZ,Uzbek", "vi-VN,Vietnamese", "cy-GB,Welsh", "zu-ZA,Zulu"};
+        for (String l : langs) { String[] p = l.split(","); globalLanguages.add(new LangItem(p[0], p[1])); }
+        java.util.Collections.sort(globalLanguages, (a, b) -> a.displayName.compareTo(b.displayName));
     }
     private void setupTabModes() {
-        String[] modes = {"Mode 0: Single Engine Mode", "Mode 1: Auto Detect Language Mode", "Mode 2: Mixed Regional / Dual Mode"};
-        ArrayAdapter<String> modeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, modes);
-        spinnerModes.setAdapter(modeAdapter);
-        int savedMode = prefs.getInt("tts_mode", 0);
-        spinnerModes.setSelection(Math.min(savedMode, modes.length - 1));
-
-        spinnerModes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                prefs.edit().putInt("tts_mode", position).apply();
-                
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+        android.widget.RadioGroup rg = findViewById(R.id.radioGroupModes);
+        int savedM = prefs.getInt("tts_mode", 0);
+        if(savedM == 0) ((android.widget.RadioButton)findViewById(R.id.radioMode0)).setChecked(true);
+        else if(savedM == 1) ((android.widget.RadioButton)findViewById(R.id.radioMode1)).setChecked(true);
+        else ((android.widget.RadioButton)findViewById(R.id.radioMode2)).setChecked(true);
+        rg.setOnCheckedChangeListener((group, checkedId) -> {
+            int m = 0;
+            if(checkedId == R.id.radioMode1) m = 1;
+            else if(checkedId == R.id.radioMode2) m = 2;
+            prefs.edit().putInt("tts_mode", m).apply();
         });
+        
 
         
     }
@@ -494,12 +450,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnRateMinus.setOnClickListener(v -> {
-            int p = Math.max(0, seekVoiceRate.getProgress() - 1);
+            int p = Math.max(0, seekVoiceRate.getProgress() - 5);
             seekVoiceRate.setProgress(p);
         });
 
         btnRatePlus.setOnClickListener(v -> {
-            int p = Math.min(100, seekVoiceRate.getProgress() + 1);
+            int p = Math.min(100, seekVoiceRate.getProgress() + 5);
             seekVoiceRate.setProgress(p);
         });
 
@@ -520,12 +476,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnPitchMinus.setOnClickListener(v -> {
-            int p = Math.max(0, seekVoicePitch.getProgress() - 1);
+            int p = Math.max(0, seekVoicePitch.getProgress() - 5);
             seekVoicePitch.setProgress(p);
         });
 
         btnPitchPlus.setOnClickListener(v -> {
-            int p = Math.min(100, seekVoicePitch.getProgress() + 1);
+            int p = Math.min(100, seekVoicePitch.getProgress() + 5);
             seekVoicePitch.setProgress(p);
         });
 
@@ -578,12 +534,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateRateLabel() {
-        float r = 0.5f + (seekVoiceRate.getProgress() / 100.0f) * 1.5f;
+        float r = seekVoiceRate.getProgress() / 50.0f;
         lblVoicesRate.setText(String.format(Locale.US, "Speech Rate: %.2fx", r));
     }
 
     private void updatePitchLabel() {
-        float p = 0.5f + (seekVoicePitch.getProgress() / 100.0f) * 1.5f;
+        float p = seekVoicePitch.getProgress() / 50.0f;
         lblVoicesPitch.setText(String.format(Locale.US, "Speech Pitch: %.2fx", p));
     }
 

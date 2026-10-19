@@ -77,13 +77,6 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="6dp" />
 
-                <Spinner
-                    android:id="@+id/spinnerModes"
-                    
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginBottom="16dp" />
-
                 <RadioGroup
                     android:id="@+id/radioGroupModes"
                     android:layout_width="match_parent"
