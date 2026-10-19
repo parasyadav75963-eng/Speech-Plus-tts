@@ -14,14 +14,13 @@ import android.speech.tts.SynthesisCallback;
 import android.speech.tts.SynthesisRequest;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeechService;
-import com.google.mlkit.nl.languageid.LanguageIdentification;
-import com.google.mlkit.nl.languageid.LanguageIdentifier;
-import com.google.android.gms.tasks.Tasks;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import com.google.mlkit.nl.languageid.LanguageIdentification;
+import com.google.mlkit.nl.languageid.LanguageIdentifier;
+import com.google.android.gms.tasks.Tasks;
 
 public class SpeechPlusService extends TextToSpeechService {
     private TextToSpeech primaryTts;
@@ -31,7 +30,6 @@ public class SpeechPlusService extends TextToSpeechService {
     private boolean isSecondaryReady = false;
     private String currentPrimaryEngine = "";
     private String currentSecondaryEngine = "";
-    private static final Pattern REGIONAL_PATTERN = Pattern.compile("[\\p{IsDevanagari}\\p{IsBengali}\\p{IsTamil}\\p{IsTelugu}\\p{IsGujarati}\\p{IsMalayalam}\\p{IsKannada}\\p{IsOriya}\\p{IsGurmukhi}]+");
     private final Map<String, TextToSpeech> extraEngines = new HashMap<>();
 
     @Override
@@ -47,35 +45,55 @@ public class SpeechPlusService extends TextToSpeechService {
         String sEng = prefs.getString("secondary_engine", "");
 
         if (primaryTts == null || !pEng.equals(currentPrimaryEngine)) {
-            currentPrimaryEngine = pEng; isPrimaryReady = false;
+            currentPrimaryEngine = pEng;
+            isPrimaryReady = false;
             if (primaryTts != null) { try { primaryTts.shutdown(); } catch (Exception ignored) {} }
-            if (!pEng.isEmpty()) primaryTts = new TextToSpeech(this, status -> { if (status == TextToSpeech.SUCCESS) isPrimaryReady = true; }, pEng);
+            if (!pEng.isEmpty()) {
+                primaryTts = new TextToSpeech(this, status -> { if (status == TextToSpeech.SUCCESS) isPrimaryReady = true; }, pEng);
+            }
         }
 
         if (secondaryTts == null || !sEng.equals(currentSecondaryEngine)) {
-            currentSecondaryEngine = sEng; isSecondaryReady = false;
+            currentSecondaryEngine = sEng;
+            isSecondaryReady = false;
             if (secondaryTts != null) { try { secondaryTts.shutdown(); } catch (Exception ignored) {} }
-            if (!sEng.isEmpty()) secondaryTts = new TextToSpeech(this, status -> { if (status == TextToSpeech.SUCCESS) isSecondaryReady = true; }, sEng);
-            else secondaryTts = null;
+            if (!sEng.isEmpty()) {
+                secondaryTts = new TextToSpeech(this, status -> { if (status == TextToSpeech.SUCCESS) isSecondaryReady = true; }, sEng);
+            } else { secondaryTts = null; }
+        }
+
+        Set<String> keys = prefs.getStringSet("configured_lang_keys", new HashSet<>());
+        for (String k : keys) {
+            try {
+                JSONObject obj = new JSONObject(prefs.getString(k, ""));
+                String ePkg = obj.optString("engine_pkg", "");
+                if (!ePkg.isEmpty() && !"disabled".equals(ePkg)) {
+                    getOrCreateEngine(ePkg);
+                }
+            } catch(Exception ignored){}
         }
     }
 
     private boolean isLegacyEngine(String pkg) {
         if (pkg == null) return false;
         String p = pkg.toLowerCase(Locale.US);
-        return p.contains("eloquence") || p.contains("smartvoice") || p.contains("vocalizer");
+        return p.contains("eloquence") || p.contains("smartvoice") || p.contains("codefactory") || p.contains("vocalizer");
     }
 
-    
-    
-    @Override protected int onIsLanguageAvailable(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
-    @Override protected String[] onGetLanguage() { return new String[]{"hin", "IND", ""}; }
-    @Override protected int onLoadLanguage(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
+    @Override
+    protected int onIsLanguageAvailable(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
+    @Override
+    protected String[] onGetLanguage() { return new String[]{"hin", "IND", ""}; }
+    @Override
+    protected int onLoadLanguage(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
 
     @Override
     protected void onStop() {
         if (primaryTts != null) { try { primaryTts.stop(); } catch (Exception ignored) {} }
         if (secondaryTts != null) { try { secondaryTts.stop(); } catch (Exception ignored) {} }
+        for (TextToSpeech tts : extraEngines.values()) {
+            if (tts != null) { try { tts.stop(); } catch (Exception ignored) {} }
+        }
     }
 
     @Override
@@ -83,39 +101,42 @@ public class SpeechPlusService extends TextToSpeechService {
         String text = request.getCharSequenceText() != null ? request.getCharSequenceText().toString() : request.getText();
         if (text == null || text.trim().isEmpty()) {
             callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1);
-            callback.done(); return;
+            callback.done();
+            return;
         }
-        text = text.trim(); initEngines();
+        text = text.trim();
+        initEngines();
 
-        float speechRate = prefs.getBoolean("force_rate", true) ? (prefs.getInt("voice_tab_rate_progress", 20) / 20.0f) : (request.getSpeechRate() / 100.0f);
-        float pitch = prefs.getBoolean("force_pitch", true) ? (prefs.getInt("voice_tab_pitch_progress", 20) / 20.0f) : (request.getPitch() / 100.0f);
-        if (speechRate <= 0.1f) speechRate = 1.0f; if (pitch <= 0.1f) pitch = 1.0f;
+        boolean forceRate = prefs.getBoolean("force_rate", true);
+        boolean forcePitch = prefs.getBoolean("force_pitch", true);
+        float speechRate = forceRate ? (prefs.getInt("voice_tab_rate_progress", 20) / 20.0f) : (request.getSpeechRate() / 100.0f);
+        float pitch = forcePitch ? (prefs.getInt("voice_tab_pitch_progress", 20) / 20.0f) : (request.getPitch() / 100.0f);
+        if (speechRate <= 0.1f) speechRate = 1.0f;
+        if (pitch <= 0.1f) pitch = 1.0f;
 
         Bundle params = new Bundle();
+        params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, prefs.getInt("voice_tab_volume", 100) / 100.0f);
         
-        float volume = prefs.getInt("voice_tab_volume", 100) / 100.0f;
-        if (prefs.getBoolean("amplify_volume", true)) {
-            volume = Math.min(1.0f, volume * 1.5f);
-        }
-        params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume);
-        
+        int routing = prefs.getInt("audio_routing", 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, prefs.getInt("audio_routing", 0) == 1 ? AudioManager.STREAM_ACCESSIBILITY : AudioManager.STREAM_MUSIC);
+            params.putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, routing == 1 ? AudioManager.STREAM_ACCESSIBILITY : AudioManager.STREAM_MUSIC);
         }
 
+        int mode = prefs.getInt("tts_mode", 0);
         onStop();
 
-        if (prefs.getInt("tts_mode", 0) == 0) {
+        if (mode == 0) {
             speakOnEngine(primaryTts, isPrimaryReady, text, speechRate, pitch, params, true, "", currentPrimaryEngine);
         } else {
             synthesizeAutoTTS(text, speechRate, pitch, params);
         }
 
-        callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1); callback.done();
+        callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1);
+        callback.done();
     }
 
     private void synthesizeAutoTTS(String text, float baseRate, float basePitch, Bundle baseParams) {
-        String[] chunks = text.split("(?<=[.!?,\n])\\s+|\\s+(?=[A-Z])");
+        String[] chunks = text.split("(?<=[.!?,\\n])\\s+|\\s+(?=[A-Z])");
         LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
         boolean isFirst = true;
 
@@ -149,6 +170,7 @@ public class SpeechPlusService extends TextToSpeechService {
                     }
                 }
             }
+
             speakOnEngine(primaryTts, isPrimaryReady, chunk, baseRate, basePitch, baseParams, isFirst, langCode, currentPrimaryEngine);
             isFirst = false;
         }
@@ -157,17 +179,66 @@ public class SpeechPlusService extends TextToSpeechService {
     private void speakOnEngine(TextToSpeech tts, boolean isReady, String text, float rate, float pitch, Bundle params, boolean flush, String langCode, String enginePkg) {
         if (tts != null && isReady) {
             try {
-                if (langCode != null && !langCode.isEmpty()) { try { tts.setLanguage(Locale.forLanguageTag(langCode)); } catch (Throwable ignored) {} }
-                tts.setSpeechRate(rate); tts.setPitch(pitch);
+                if (langCode != null && !langCode.isEmpty()) {
+                    try { tts.setLanguage(Locale.forLanguageTag(langCode)); } catch (Throwable ignored) {}
+                }
+                tts.setSpeechRate(rate);
+                tts.setPitch(pitch);
                 Bundle safeParams = params != null ? new Bundle(params) : new Bundle();
-                
-                if (isLegacyEngine(enginePkg) || prefs.getBoolean("strip_attributes", false)) safeParams.remove(TextToSpeech.Engine.KEY_PARAM_STREAM);
+                boolean strip = prefs.getBoolean("strip_attributes", false);
 
-                boolean isQuickChar = prefs.getBoolean("quick_char", false) && text != null && text.length() <= 2;
-                int queueMode = (flush || isQuickChar) ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD;
+                if (isLegacyEngine(enginePkg) || strip) {
+                    safeParams.remove(TextToSpeech.Engine.KEY_PARAM_STREAM);
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    int routing = prefs.getInt("audio_routing", 0);
+                    AudioAttributes.Builder attrs = new AudioAttributes.Builder();
+                    if (routing == 1) {
+                        attrs.setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                    } else {
+                        attrs.setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+                    }
+                    try { tts.setAudioAttributes(attrs.build()); } catch (Throwable ignored) {}
+                }
 
-                tts.speak(text, queueMode, safeParams, "SP_" + System.currentTimeMillis());
+                tts.speak(text, flush ? TextToSpeech.QUEUE_FLUSH : TextToSpeech.QUEUE_ADD, safeParams, "SP_" + System.currentTimeMillis());
             } catch (Throwable ignored) {}
+        }
+    }
+
+    private synchronized TextToSpeech getOrCreateEngine(String pkg) {
+        if (pkg == null || pkg.isEmpty() || "disabled".equals(pkg)) return null;
+        if (pkg.equals(currentPrimaryEngine)) return primaryTts;
+        if (pkg.equals(currentSecondaryEngine)) return secondaryTts;
+        if (extraEngines.containsKey(pkg)) return extraEngines.get(pkg);
+        
+        TextToSpeech engine = new TextToSpeech(this, status -> {}, pkg);
+        extraEngines.put(pkg, engine);
+        return engine;
+    }
+
+    private JSONObject findLanguageConfig(String reqLang, String text) {
+        if (prefs == null) return null;
+        Set<String> configuredKeys = prefs.getStringSet("configured_lang_keys", null);
+        if (configuredKeys == null || configuredKeys.isEmpty()) return null;
+        String langPart = (reqLang != null) ? reqLang.toLowerCase().trim() : "";
+        for (String key : configuredKeys) {
+            String code = key.replace("lang_map_", "").toLowerCase().trim();
+            if (code.equals(langPart) || code.startsWith(langPart)) {
+                try { return new JSONObject(prefs.getString(key, "")); } catch (Exception ignored) {}
+            }
+        }
+        return null;
+    }
+
+    private void applyVoiceAndLocale(TextToSpeech tts, String langCode, String variant) {
+        if (tts == null) return;
+        try { if (langCode != null && !langCode.isEmpty()) tts.setLanguage(Locale.forLanguageTag(langCode)); } catch (Exception ignored) {}
+        if (variant != null && !variant.equals("Default") && !variant.equals("Default Voice")) {
+            try { String engName = tts.getDefaultEngine(); if (engName != null && engName.toLowerCase(Locale.US).contains("eloquence")) return; } catch (Throwable ignored) {}
+            try {
+                Set<Voice> voices = tts.getVoices();
+                if (voices != null) { for (Voice v : voices) { if (v.getName().equals(variant)) { tts.setVoice(v); break; } } }
+            } catch (Exception ignored) {}
         }
     }
 }
