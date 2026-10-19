@@ -385,21 +385,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Audio Stream Routing"
-                    android:textColor="#03DAC5"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerAudioRouting"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginBottom="16dp" />
-
                 <CheckBox
                     android:id="@+id/chkForceRate"
                     android:layout_width="match_parent"

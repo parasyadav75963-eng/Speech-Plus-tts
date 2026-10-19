@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout layoutConfiguredLanguages;
 
     // Tab 4 (Advanced) views
-    private Spinner spinnerAudioRouting;
+    
     private CheckBox chkForceRate;
     private CheckBox chkForcePitch;
     private CheckBox chkStripAttributes;
@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
         layoutConfiguredLanguages = findViewById(R.id.layoutConfiguredLanguages);
 
         // Advanced
-        spinnerAudioRouting = findViewById(R.id.spinnerAudioRouting);
+        
         chkForceRate = findViewById(R.id.chkForceRate);
         chkForcePitch = findViewById(R.id.chkForcePitch);
         chkStripAttributes = findViewById(R.id.chkStripAttributes);
@@ -434,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         seekVoiceRate.setMax(100);
-        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 20));
+        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 35));
         updateRateLabel();
 
         seekVoiceRate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -460,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         seekVoicePitch.setMax(100);
-        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 20));
+        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 35));
         updatePitchLabel();
 
         seekVoicePitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -520,8 +520,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            float rate = 0.5f + (seekVoiceRate.getProgress() / 100.0f) * 1.5f;
-            float pitch = 0.5f + (seekVoicePitch.getProgress() / 100.0f) * 1.5f;
+            float rate = 0.5f + (seekVoiceRate.getProgress() / 35.0f) * 1.5f;
+            float pitch = 0.5f + (seekVoicePitch.getProgress() / 35.0f) * 1.5f;
             int vol = seekVoiceVolume.getProgress();
             String selVar = spinnerVoiceVariant.getSelectedItem() != null ? spinnerVoiceVariant.getSelectedItem().toString() : "Default Voice";
 
@@ -534,12 +534,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateRateLabel() {
-        float r = seekVoiceRate.getProgress() / 50.0f;
+        float r = seekVoiceRate.getProgress() / 35.0f;
         lblVoicesRate.setText(String.format(Locale.US, "Speech Rate: %.2fx", r));
     }
 
     private void updatePitchLabel() {
-        float p = seekVoicePitch.getProgress() / 50.0f;
+        float p = seekVoicePitch.getProgress() / 35.0f;
         lblVoicesPitch.setText(String.format(Locale.US, "Speech Pitch: %.2fx", p));
     }
 
@@ -679,8 +679,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (selLang == null || selEng == null) return;
 
-        float rate = 0.5f + (seekVoiceRate.getProgress() / 100.0f) * 1.5f;
-        float pitch = 0.5f + (seekVoicePitch.getProgress() / 100.0f) * 1.5f;
+        float rate = 0.5f + (seekVoiceRate.getProgress() / 35.0f) * 1.5f;
+        float pitch = 0.5f + (seekVoicePitch.getProgress() / 35.0f) * 1.5f;
         int vol = seekVoiceVolume.getProgress();
 
         String mapKey = "lang_map_" + selLang.code;
@@ -741,20 +741,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void setupTabAdvanced() {
-        String[] streams = {"0: Media Stream (STREAM_MUSIC)", "1: Accessibility Stream (STREAM_ACCESSIBILITY)"};
-        ArrayAdapter<String> streamAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, streams);
-        spinnerAudioRouting.setAdapter(streamAdapter);
-        int savedRouting = prefs.getInt("audio_routing", 1);
-        spinnerAudioRouting.setSelection(Math.min(savedRouting, streams.length - 1));
-
-        spinnerAudioRouting.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                prefs.edit().putInt("audio_routing", position).apply();
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        
 
         chkForceRate.setChecked(prefs.getBoolean("force_rate", true));
         chkForceRate.setOnCheckedChangeListener((b, isChecked) -> prefs.edit().putBoolean("force_rate", isChecked).apply());
