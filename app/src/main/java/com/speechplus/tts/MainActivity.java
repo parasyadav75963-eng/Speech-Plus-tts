@@ -434,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         seekVoiceRate.setMax(100);
-        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 35));
+        seekVoiceRate.setProgress(prefs.getInt("voice_tab_rate_progress", 50));
         updateRateLabel();
 
         seekVoiceRate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -460,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         seekVoicePitch.setMax(100);
-        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 35));
+        seekVoicePitch.setProgress(prefs.getInt("voice_tab_pitch_progress", 50));
         updatePitchLabel();
 
         seekVoicePitch.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -520,8 +520,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            float rate = 0.5f + (seekVoiceRate.getProgress() / 35.0f) * 1.5f;
-            float pitch = 0.5f + (seekVoicePitch.getProgress() / 35.0f) * 1.5f;
+            float rate = 0.5f + (seekVoiceRate.getProgress() / 50.0f) * 1.5f;
+            float pitch = 0.5f + (seekVoicePitch.getProgress() / 50.0f) * 1.5f;
             int vol = seekVoiceVolume.getProgress();
             String selVar = spinnerVoiceVariant.getSelectedItem() != null ? spinnerVoiceVariant.getSelectedItem().toString() : "Default Voice";
 
@@ -534,12 +534,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateRateLabel() {
-        float r = seekVoiceRate.getProgress() / 35.0f;
+        float r = seekVoiceRate.getProgress() / 50.0f;
         lblVoicesRate.setText(String.format(Locale.US, "Speech Rate: %.2fx", r));
     }
 
     private void updatePitchLabel() {
-        float p = seekVoicePitch.getProgress() / 35.0f;
+        float p = seekVoicePitch.getProgress() / 50.0f;
         lblVoicesPitch.setText(String.format(Locale.US, "Speech Pitch: %.2fx", p));
     }
 
@@ -679,8 +679,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (selLang == null || selEng == null) return;
 
-        float rate = 0.5f + (seekVoiceRate.getProgress() / 35.0f) * 1.5f;
-        float pitch = 0.5f + (seekVoicePitch.getProgress() / 35.0f) * 1.5f;
+        float rate = 0.5f + (seekVoiceRate.getProgress() / 50.0f) * 1.5f;
+        float pitch = 0.5f + (seekVoicePitch.getProgress() / 50.0f) * 1.5f;
         int vol = seekVoiceVolume.getProgress();
 
         String mapKey = "lang_map_" + selLang.code;
