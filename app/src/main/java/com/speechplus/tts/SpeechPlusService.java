@@ -91,8 +91,6 @@ public class SpeechPlusService extends TextToSpeechService {
         if (text == null || text.trim().isEmpty()) { callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1); callback.done(); return; }
         text = text.trim(); initEngines();
 
-        // 🔥 TRUE ENGINE DEFAULT FIX: 
-        // अगर Force Checkbox टिक नहीं है, तो हम ऐप के प्रोग्रेस को बिल्कुल बाईपास करके TalkBack/System की ओरिजिनल वैल्यू भेजेंगे।
         boolean forceRate = prefs.getBoolean("force_rate", false);
         boolean forcePitch = prefs.getBoolean("force_pitch", false);
 
@@ -103,7 +101,6 @@ public class SpeechPlusService extends TextToSpeechService {
             float appRate = prefs.getInt("voice_tab_rate_progress", 50) / 50.0f;
             speechRate = Math.max(0.1f, Math.min(appRate, 3.0f));
         } else {
-            // TalkBack या System की डिफ़ॉल्ट ओरिजिनल स्पीड का उपयोग करें (कोई छेड़छाड़ नहीं)
             speechRate = request.getSpeechRate() > 0 ? request.getSpeechRate() / 100.0f : 1.0f;
         }
 
@@ -111,7 +108,6 @@ public class SpeechPlusService extends TextToSpeechService {
             float appPitch = prefs.getInt("voice_tab_pitch_progress", 50) / 50.0f;
             pitch = Math.max(0.1f, Math.min(appPitch, 3.0f));
         } else {
-            // TalkBack या System की डिफ़ॉल्ट ओरिजिनल पिच का उपयोग करें (आवाज़ मोटी/पतली नहीं होगी)
             pitch = request.getPitch() > 0 ? request.getPitch() / 100.0f : 1.0f;
         }
 
@@ -123,7 +119,7 @@ public class SpeechPlusService extends TextToSpeechService {
         if (mode == 0) {
             speakAndWait(primaryTts, isPrimaryReady, text, speechRate, pitch, params);
         } else {
-            if (text.length() <= 3) {
+            if (text.length() <= 8) {
                 String quickLang = text.matches(".*[\\u0900-\\u097F].*") ? "hi" : "en";
                 routeAndSpeak(text, speechRate, pitch, params, quickLang);
             } else {
@@ -135,7 +131,8 @@ public class SpeechPlusService extends TextToSpeechService {
     }
 
     private void synthesizeAutoTTS(String text, float baseRate, float basePitch, Bundle baseParams) {
-        String[] chunks = text.split("(?<=[\\u0900-\\u097F])\\s*(?=[a-zA-Z])|(?<=[a-zA-Z])\\s*(?=[\\u0900-\\u097F])|(?<=[.!?\\n])\\s+"); 
+        // 🔥 NO-SKIP FIX: सुरक्षित और सटीक स्प्लिटिंग ताकि कोई भी शब्द या वाक्य गायब न हो
+        String[] chunks = text.split("(?<=[.!?\\n])\\s+|(?<=[\\u0900-\\u097F])\\s*(?=[a-zA-Z])|(?<=[a-zA-Z])\\s*(?=[\\u0900-\\u097F])"); 
         LanguageIdentifier langId = LanguageIdentification.getClient();
         
         for (String chunk : chunks) {
@@ -192,9 +189,10 @@ public class SpeechPlusService extends TextToSpeechService {
                 @Override public void onError(String s) { if(s.equals(utteranceId) && syncLatch != null) syncLatch.countDown(); }
             });
             
-            tts.speak(text, TextToSpeech.QUEUE_FLUSH, safeParams, utteranceId);
+            // QUEUE_ADD का उपयोग ताकि बड़े टेक्स्ट का एक भी शब्द स्किप न हो
+            tts.speak(text, TextToSpeech.QUEUE_ADD, safeParams, utteranceId);
             
-            try { syncLatch.await(8, TimeUnit.SECONDS); } catch (Exception ignored) {}
+            try { syncLatch.await(10, TimeUnit.SECONDS); } catch (Exception ignored) {}
             syncLatch = null;
 
         } catch (Throwable ignored) {}
