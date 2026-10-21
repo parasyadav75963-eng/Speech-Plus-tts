@@ -127,6 +127,30 @@ public class SpeechPlusService extends TextToSpeechService {
         }
     }
 
+    private boolean containsDevanagari(String s) {
+        if (s == null) return false;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch >= '\u0900' && ch <= '\u097F') return true;
+        }
+        return false;
+    }
+
+    @Override protected int onIsLanguageAvailable(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
+    @Override protected String[] onGetLanguage() { return new String[]{"eng", "IND", ""}; }
+    @Override protected int onLoadLanguage(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
+
+    @Override
+    protected void onStop() {
+        isStopped = true;
+        if (activeSynthLatch != null) { activeSynthLatch.countDown(); }
+        if (primaryTts != null) { try { primaryTts.stop(); } catch (Exception ignored) {} }
+        if (secondaryTts != null) { try { secondaryTts.stop(); } catch (Exception ignored) {} }
+        for (TextToSpeech tts : extraEngines.values()) {
+            if (tts != null) { try { tts.stop(); } catch (Exception ignored) {} }
+        }
+    }
+
     @Override
     protected void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         isStopped = false;
@@ -215,11 +239,11 @@ public class SpeechPlusService extends TextToSpeechService {
             String num = m.group();
             if (formatType == 1) { // Digit by Digit
                 for (int i = 0; i < num.length(); i++) sb.append(num.charAt(i)).append(" ");
-            } else if (formatType == 2) { // Pairs (दो-दो)
+            } else if (formatType == 2) { // Pairs
                 for (int i = 0; i < num.length(); i += 2) {
                     sb.append(num.substring(i, Math.min(i + 2, num.length()))).append(" ");
                 }
-            } else if (formatType == 3) { // Triplets (तीन-तीन)
+            } else if (formatType == 3) { // Triplets
                 for (int i = 0; i < num.length(); i += 3) {
                     sb.append(num.substring(i, Math.min(i + 3, num.length()))).append(" ");
                 }
