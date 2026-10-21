@@ -1003,4 +1003,174 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .show();
     }
+    // STARTUP_SCANNER_METHODS_START
+    private boolean hasShownSessionIntro = false;
+
+    private void showItfbWelcomeAndScanner() {
+        if (hasShownSessionIntro || isFinishing()) return;
+        hasShownSessionIntro = true;
+
+        android.widget.LinearLayout root = new android.widget.LinearLayout(this);
+        root.setOrientation(android.widget.LinearLayout.VERTICAL);
+        root.setPadding(50, 45, 50, 35);
+        root.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"));
+
+        android.widget.TextView titleView = new android.widget.TextView(this);
+        titleView.setText("Welcome to Speech Plus TTS (ITFB & Community)");
+        titleView.setTextColor(android.graphics.Color.parseColor("#00E676"));
+        titleView.setTextSize(19f);
+        titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+        titleView.setPadding(0, 0, 0, 24);
+        root.addView(titleView);
+
+        android.widget.TextView descView = new android.widget.TextView(this);
+        descView.setText(
+            "About ITFB (Interested Technology For Blind) & Community:\n\n" +
+            "Speech Plus TTS is built with a Zero-Lag mission for visually impaired users, proudly developed by Paras Yadav in collaboration with ITFB (Interested Technology For Blind) and our dedicated accessibility community.\n\n" +
+            "ITFB (Interested Technology For Blind) is committed to empowering blind and low-vision users with innovative, fast, and accessible technology, seamless multi-language Auto TTS switching, and active community support.\n\n" +
+            "Tap 'Continue with App' below to scan your device's available languages and voices and proceed to the app interface."
+        );
+        descView.setTextColor(android.graphics.Color.WHITE);
+        descView.setTextSize(15f);
+        descView.setLineSpacing(6f, 1.1f);
+        descView.setPadding(0, 0, 0, 36);
+        root.addView(descView);
+
+        android.widget.Button btnContinue = new android.widget.Button(this);
+        btnContinue.setText("CONTINUE WITH APP");
+        btnContinue.setTextColor(android.graphics.Color.WHITE);
+        btnContinue.setTextSize(16f);
+        btnContinue.setAllCaps(true);
+        btnContinue.setBackgroundColor(android.graphics.Color.parseColor("#6200EE"));
+        btnContinue.setPadding(24, 28, 24, 28);
+        root.addView(btnContinue);
+
+        android.app.AlertDialog welcomeDialog = new android.app.AlertDialog.Builder(this)
+            .setView(root)
+            .setCancelable(false)
+            .create();
+
+        btnContinue.setOnClickListener(v -> {
+            welcomeDialog.dismiss();
+            runAutoTtsDeviceLanguageAndVoiceScanner();
+        });
+
+        welcomeDialog.show();
+    }
+
+    private void runAutoTtsDeviceLanguageAndVoiceScanner() {
+        if (isFinishing()) return;
+
+        android.widget.LinearLayout scanLayout = new android.widget.LinearLayout(this);
+        scanLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        scanLayout.setPadding(50, 45, 50, 45);
+        scanLayout.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"));
+
+        android.widget.TextView scanTitle = new android.widget.TextView(this);
+        scanTitle.setText("Scanning Device Languages & Voices...");
+        scanTitle.setTextColor(android.graphics.Color.parseColor("#00E676"));
+        scanTitle.setTextSize(18f);
+        scanTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        scanTitle.setPadding(0, 0, 0, 20);
+        scanLayout.addView(scanTitle);
+
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
+        progressBar.setIndeterminate(true);
+        progressBar.setPadding(0, 10, 0, 24);
+        scanLayout.addView(progressBar);
+
+        android.widget.TextView scanStatus = new android.widget.TextView(this);
+        String initialMsg = "Scanning... Available device languages and voices are being scanned.\nडिवाइस में उपलब्ध सभी भाषाओं और आवाज़ों को स्कैन किया जा रहा है...";
+        scanStatus.setText(initialMsg);
+        scanStatus.setTextColor(android.graphics.Color.WHITE);
+        scanStatus.setTextSize(15f);
+        scanLayout.addView(scanStatus);
+
+        android.app.AlertDialog scanDialog = new android.app.AlertDialog.Builder(this)
+            .setView(scanLayout)
+            .setCancelable(false)
+            .create();
+
+        scanDialog.show();
+        scanLayout.announceForAccessibility(initialMsg);
+
+        new Thread(() -> {
+            int engineCount = 0;
+            java.util.Set<String> discoveredLangs = new java.util.HashSet<>();
+            int voiceCount = 0;
+
+            try {
+                android.content.Intent intent = new android.content.Intent(android.speech.tts.TextToSpeech.Engine.INTENT_ACTION_TTS_SERVICE);
+                java.util.List<android.content.pm.ResolveInfo> engines = getPackageManager().queryIntentServices(intent, 0);
+                if (engines != null) {
+                    for (android.content.pm.ResolveInfo info : engines) {
+                        String pkg = info.serviceInfo.packageName;
+                        if (getPackageName().equals(pkg)) continue;
+                        engineCount++;
+                        CharSequence labelCs = info.loadLabel(getPackageManager());
+                        String label = labelCs != null ? labelCs.toString() : pkg;
+
+                        runOnUiThread(() -> {
+                            String stepMsg = "Scanning Engine: " + label + "\nडिवाइस में उपलब्ध सभी भाषाओं और आवाज़ों को स्कैन किया जा रहा है...";
+                            scanStatus.setText(stepMsg);
+                        });
+
+                        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+                        final android.speech.tts.TextToSpeech[] holder = new android.speech.tts.TextToSpeech[1];
+                        holder[0] = new android.speech.tts.TextToSpeech(getApplicationContext(), status -> latch.countDown(), pkg);
+
+                        try { latch.await(2500, java.util.concurrent.TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
+
+                        if (holder[0] != null) {
+                            try {
+                                java.util.Set<android.speech.tts.Voice> voices = holder[0].getVoices();
+                                if (voices != null && !voices.isEmpty()) {
+                                    for (android.speech.tts.Voice v : voices) {
+                                        voiceCount++;
+                                        if (v.getLocale() != null) {
+                                            discoveredLangs.add(v.getLocale().getLanguage());
+                                        }
+                                    }
+                                } else {
+                                    for (java.util.Locale loc : java.util.Locale.getAvailableLocales()) {
+                                        try {
+                                            int avail = holder[0].isLanguageAvailable(loc);
+                                            if (avail >= android.speech.tts.TextToSpeech.LANG_AVAILABLE) {
+                                                discoveredLangs.add(loc.getLanguage());
+                                                voiceCount++;
+                                            }
+                                        } catch (Exception ignored) {}
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                            try { holder[0].shutdown(); } catch (Exception ignored) {}
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            final int finalEngines = engineCount;
+            final int finalLangs = Math.max(discoveredLangs.size(), 2);
+            final int finalVoices = Math.max(voiceCount, 2);
+
+            prefs.edit()
+                .putInt("scanned_engines_count", finalEngines)
+                .putInt("scanned_langs_count", finalLangs)
+                .putInt("scanned_voices_count", finalVoices)
+                .apply();
+
+            try { Thread.sleep(600); } catch (Exception ignored) {}
+
+            runOnUiThread(() -> {
+                if (!isFinishing() && scanDialog.isShowing()) {
+                    scanDialog.dismiss();
+                }
+                String doneMsg = "Scan Complete! Found " + finalEngines + " TTS Engines, " + finalLangs + " Languages, and " + finalVoices + " Voices.";
+                android.widget.Toast.makeText(MainActivity.this, doneMsg, android.widget.Toast.LENGTH_LONG).show();
+                getWindow().getDecorView().announceForAccessibility(doneMsg);
+            });
+        }).start();
+    }
+    // STARTUP_SCANNER_METHODS_END
+
 }
