@@ -1003,7 +1003,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .show();
     }
-        // STARTUP_SCANNER_METHODS_START
+            // STARTUP_SCANNER_METHODS_START
     private boolean hasShownSessionIntro = false;
 
     private void showItfbWelcomeAndScanner() {
@@ -1027,7 +1027,7 @@ public class MainActivity extends AppCompatActivity {
         descView.setText(
             "About ITFB (Interested Technology For Blind) & Community:\n\n" +
             "Speech Plus TTS is built with a Zero-Lag mission for visually impaired users, proudly developed by Paras Yadav in collaboration with ITFB (Interested Technology For Blind) and our dedicated accessibility community.\n\n" +
-            "ITFB (Interested Technology For Blind) is committed to empowering blind and low-vision users with innovative, fast, and accessible technology, seamless multi-language Auto TTS switching, and active community support.\n\n" +
+            "ITFB is committed to empowering blind and low-vision users with innovative, fast, and accessible technology, seamless multi-language Auto TTS switching, and active community support.\n\n" +
             "Tap 'Continue with App' below to scan your device's available languages and voices and proceed to the app interface."
         );
         descView.setTextColor(android.graphics.Color.WHITE);
@@ -1131,16 +1131,6 @@ public class MainActivity extends AppCompatActivity {
                                             discoveredLangs.add(v.getLocale().getLanguage());
                                         }
                                     }
-                                } else {
-                                    for (java.util.Locale loc : java.util.Locale.getAvailableLocales()) {
-                                        try {
-                                            int avail = holder[0].isLanguageAvailable(loc);
-                                            if (avail >= android.speech.tts.TextToSpeech.LANG_AVAILABLE) {
-                                                discoveredLangs.add(loc.getLanguage());
-                                                voiceCount++;
-                                            }
-                                        } catch (Exception ignored) {}
-                                    }
                                 }
                             } catch (Exception ignored) {}
                             try { holder[0].shutdown(); } catch (Exception ignored) {}
@@ -1153,18 +1143,11 @@ public class MainActivity extends AppCompatActivity {
             final int finalLangs = Math.max(discoveredLangs.size(), 2);
             final int finalVoices = Math.max(voiceCount, 2);
 
-            prefs.edit()
-                .putInt("scanned_engines_count", finalEngines)
-                .putInt("scanned_langs_count", finalLangs)
-                .putInt("scanned_voices_count", finalVoices)
-                .apply();
-
+            prefs.edit().putInt("scanned_engines_count", finalEngines).putInt("scanned_langs_count", finalLangs).putInt("scanned_voices_count", finalVoices).apply();
             try { Thread.sleep(600); } catch (Exception ignored) {}
 
             runOnUiThread(() -> {
-                if (!isFinishing() && scanDialog.isShowing()) {
-                    scanDialog.dismiss();
-                }
+                if (!isFinishing() && scanDialog.isShowing()) scanDialog.dismiss();
                 String doneMsg = "Scan Complete! Found " + finalEngines + " TTS Engines, " + finalLangs + " Languages, and " + finalVoices + " Voices.";
                 android.widget.Toast.makeText(MainActivity.this, doneMsg, android.widget.Toast.LENGTH_LONG).show();
                 getWindow().getDecorView().announceForAccessibility(doneMsg);

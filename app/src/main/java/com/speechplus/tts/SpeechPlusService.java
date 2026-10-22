@@ -285,6 +285,11 @@ public class SpeechPlusService extends TextToSpeechService {
                     current.setLength(0);
                     lastScript = 0;
                 }
+            if (current.length() >= 150 && Character.isWhitespace(ch)) {
+                result.add(current.toString());
+                current.setLength(0);
+                lastScript = 0;
+            }
             }
         }
         if (current.length() > 0) {
@@ -436,7 +441,7 @@ public class SpeechPlusService extends TextToSpeechService {
 
             int res = tts.synthesizeToFile(text, params, tempWav, utteranceId);
             if (res == TextToSpeech.SUCCESS) {
-                try { synthLatch.await(8, TimeUnit.SECONDS); } catch (Exception ignored) {}
+                try { synthLatch.await(20, TimeUnit.SECONDS); } catch (Exception ignored) {}
             }
 
             if (tempWav.exists() && tempWav.length() > 44 && !isStopped) {
@@ -460,7 +465,7 @@ public class SpeechPlusService extends TextToSpeechService {
                 });
                 int sRes = tts.speak(text, TextToSpeech.QUEUE_ADD, params, fallbackId);
                 if (sRes == TextToSpeech.SUCCESS) {
-                    try { speakLatch.await(6, TimeUnit.SECONDS); } catch (Exception ignored) {}
+                    try { speakLatch.await(15, TimeUnit.SECONDS); } catch (Exception ignored) {}
                 }
             }
         } catch (Throwable ignored) {}
