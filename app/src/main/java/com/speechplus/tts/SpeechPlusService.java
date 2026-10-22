@@ -166,12 +166,10 @@ public class SpeechPlusService extends TextToSpeechService {
         initEngines();
         String text = rawText.trim();
 
-        // 1. Punctuation Rules Apply
         int punctLevel = prefs.getInt("punctuation_level", 0);
         boolean hasHindi = containsDevanagari(text);
         text = applyPunctuationRules(text, punctLevel, hasHindi);
         
-        // 2. Number Formatting Apply
         int numFormat = prefs.getInt("num_format", 0);
         if (numFormat != 0) {
             text = formatNumbers(text, numFormat);
@@ -205,14 +203,16 @@ public class SpeechPlusService extends TextToSpeechService {
 
             String langCode = "en";
             
-            // Number Language override logic
-            if (c.matches("^[0-9\\s,.-]+$") && numLangPref != 0) {
+            // FAST-PATH & ZERO-LAG FIX
+            if (c.matches("^[0-9\\s,.:]+$")) { // Time (10:30) & Numbers Fast Path
                 langCode = (numLangPref == 1) ? "hi" : "en";
             } else if (containsDevanagari(c)) {
                 langCode = "hi";
-            } else if (c.length() > 4) {
+            } else if (c.length() <= 4) { // Zero-Lag for small words/spellings/swipe
+                langCode = "en"; 
+            } else { // Only run ML Kit Scanner on bigger sentences
                 try {
-                    String dl = Tasks.await(langId.identifyLanguage(c), 120, TimeUnit.MILLISECONDS);
+                    String dl = Tasks.await(langId.identifyLanguage(c), 100, TimeUnit.MILLISECONDS);
                     if (dl != null && !"und".equals(dl)) langCode = dl;
                 } catch (Exception ignored) {}
             }
@@ -237,13 +237,13 @@ public class SpeechPlusService extends TextToSpeechService {
         while (m.find()) {
             sb.append(text.substring(lastEnd, m.start()));
             String num = m.group();
-            if (formatType == 1) { // Digit by Digit
+            if (formatType == 1) { 
                 for (int i = 0; i < num.length(); i++) sb.append(num.charAt(i)).append(" ");
-            } else if (formatType == 2) { // Pairs
+            } else if (formatType == 2) { 
                 for (int i = 0; i < num.length(); i += 2) {
                     sb.append(num.substring(i, Math.min(i + 2, num.length()))).append(" ");
                 }
-            } else if (formatType == 3) { // Triplets
+            } else if (formatType == 3) { 
                 for (int i = 0; i < num.length(); i += 3) {
                     sb.append(num.substring(i, Math.min(i + 3, num.length()))).append(" ");
                 }
@@ -267,7 +267,9 @@ public class SpeechPlusService extends TextToSpeechService {
             } else if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
                 script = 2;
             } else if (ch >= '0' && ch <= '9') {
-                script = 3; // Number script
+                script = 3; 
+            } else if (ch == ':' && lastScript == 3) {
+                script = 3; // Keep Time together (10:30 fix)
             }
 
             if (script != 0 && lastScript != 0 && script != lastScript && current.length() > 0) {
@@ -438,7 +440,8 @@ public class SpeechPlusService extends TextToSpeechService {
             }
 
             if (tempWav.exists() && tempWav.length() > 44 && !isStopped) {
-                streamWavFileToCallback(tempWav, callback, state, text.length() <= 6);
+                // IMPORTANT: Send isVeryShortText=true for texts under 10 chars to trigger Warm-Up Buffer and prevent Cut-offs
+                streamWavFileToCallback(tempWav, callback, state, text.length() <= 10);
                 try { tempWav.delete(); } catch (Exception ignored) {}
                 return;
             }
@@ -520,10 +523,12 @@ public class SpeechPlusService extends TextToSpeechService {
                 pcmData = resample16BitMono(pcmData, sampleRate, state.sampleRate);
             }
 
-            if (isVeryShortText && !prefs.getBoolean("strip_attributes", false)) {
-                int warmupBytes = (state.sampleRate / 25) * 2;
+            // The Warm-up Buffer: Fixes Cut-off for small spellings and letters
+            if (isVeryShortText) {
+                // Calculate exactly 40ms of silent audio buffer based on current sampleRate
+                int warmupBytes = (int) (state.sampleRate * 0.040 * 2); 
                 if (warmupBytes % 2 != 0) warmupBytes++;
-                byte[] warmup = new byte[warmupBytes];
+                byte[] warmup = new byte[warmupBytes]; // Array is automatically initialized to 0 (Silence)
                 callback.audioAvailable(warmup, 0, warmup.length);
             }
 

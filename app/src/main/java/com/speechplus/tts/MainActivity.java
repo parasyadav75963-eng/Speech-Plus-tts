@@ -1003,7 +1003,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .show();
     }
-    // STARTUP_SCANNER_METHODS_START
+        // STARTUP_SCANNER_METHODS_START
     private boolean hasShownSessionIntro = false;
 
     private void showItfbWelcomeAndScanner() {
