@@ -467,7 +467,8 @@
                     android:textStyle="bold"
                     android:layout_marginBottom="6dp" />
 
-                <!-- SPINNERS_START -->
+                <Button android:id="@+id/btnCheckUpdateMore" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+<!-- SPINNERS_START -->
 <LinearLayout android:background="#222222" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" android:orientation="vertical" android:padding="8dp">
     <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="4dp" android:layout_marginTop="4dp" android:text="Punctuation &amp; Symbols Level" android:textColor="#00E676" android:textSize="15sp" android:textStyle="bold"/>
     <Spinner android:id="@+id/spinnerPunctuation" android:layout_width="match_parent" android:layout_height="50dp" android:background="#2C2C2C" android:layout_marginBottom="10dp"/>
