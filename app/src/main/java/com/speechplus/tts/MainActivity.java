@@ -1003,7 +1003,7 @@ public class MainActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .show();
     }
-            // STARTUP_SCANNER_METHODS_START
+                // STARTUP_SCANNER_METHODS_START
     private boolean hasShownSessionIntro = false;
 
     private void showItfbWelcomeAndScanner() {
@@ -1027,11 +1027,16 @@ public class MainActivity extends AppCompatActivity {
         descView.setText(
             "About ITFB (Interested Technology For Blind) & Community:\n\n" +
             "Speech Plus TTS is built with a Zero-Lag mission for visually impaired users, proudly developed by Paras Yadav in collaboration with ITFB (Interested Technology For Blind) and our dedicated accessibility community.\n\n" +
-            "ITFB is committed to empowering blind and low-vision users with innovative, fast, and accessible technology, seamless multi-language Auto TTS switching, and active community support.\n\n" +
-            "Tap 'Continue with App' below to scan your device's available languages and voices and proceed to the app interface."
+            "Core Features of Speech Plus TTS:\n" +
+            "1. 100% Accessibility Volume PCM Streaming (Zero-Lag response).\n" +
+            "2. Smart Script Splitter & Multi-language Dual TTS (Hindi & English seamless switching without overlap).\n" +
+            "3. Advanced Punctuation & Number formatting/language controls.\n" +
+            "4. Warm-up Buffer protection to prevent clipping of small words and spellings.\n" +
+            "5. Expanded timeout protection for uninterrupted long paragraph reading.\n\n" +
+            "Tap 'CONTINUE WITH APP' below to scan your device's available languages and voices and enter the app."
         );
         descView.setTextColor(android.graphics.Color.WHITE);
-        descView.setTextSize(15f);
+        descView.setTextSize(14.5f);
         descView.setLineSpacing(6f, 1.1f);
         descView.setPadding(0, 0, 0, 36);
         root.addView(descView);
@@ -1080,7 +1085,7 @@ public class MainActivity extends AppCompatActivity {
         scanLayout.addView(progressBar);
 
         android.widget.TextView scanStatus = new android.widget.TextView(this);
-        String initialMsg = "Scanning... Available device languages and voices are being scanned.\nडिवाइस में उपलब्ध सभी भाषाओं और आवाज़ों को स्कैन किया जा रहा है...";
+        String initialMsg = "Scan in progress... Scanning available device languages and voices.\nस्कैन प्रगति पर है... डिवाइस की सभी भाषाएँ और आवाज़ें स्कैन की जा रही हैं...";
         scanStatus.setText(initialMsg);
         scanStatus.setTextColor(android.graphics.Color.WHITE);
         scanStatus.setTextSize(15f);
@@ -1111,7 +1116,7 @@ public class MainActivity extends AppCompatActivity {
                         String label = labelCs != null ? labelCs.toString() : pkg;
 
                         runOnUiThread(() -> {
-                            String stepMsg = "Scanning Engine: " + label + "\nडिवाइस में उपलब्ध सभी भाषाओं और आवाज़ों को स्कैन किया जा रहा है...";
+                            String stepMsg = "Scan in progress... Checking engine: " + label + "\nस्कैन प्रगति पर है...";
                             scanStatus.setText(stepMsg);
                         });
 
@@ -1119,7 +1124,7 @@ public class MainActivity extends AppCompatActivity {
                         final android.speech.tts.TextToSpeech[] holder = new android.speech.tts.TextToSpeech[1];
                         holder[0] = new android.speech.tts.TextToSpeech(getApplicationContext(), status -> latch.countDown(), pkg);
 
-                        try { latch.await(2500, java.util.concurrent.TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
+                        try { latch.await(2000, java.util.concurrent.TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
 
                         if (holder[0] != null) {
                             try {

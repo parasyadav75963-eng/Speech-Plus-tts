@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ResolveInfo;
@@ -26,9 +27,6 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeechService;
 import android.speech.tts.UtteranceProgressListener;
 import android.speech.tts.Voice;
-import com.google.mlkit.nl.languageid.LanguageIdentification;
-import com.google.mlkit.nl.languageid.LanguageIdentifier;
-import com.google.android.gms.tasks.Tasks;
 
 public class SpeechPlusService extends TextToSpeechService {
     private TextToSpeech primaryTts;
@@ -38,15 +36,17 @@ public class SpeechPlusService extends TextToSpeechService {
     private String currentSecondaryEngine = "";
     private final Map<String, TextToSpeech> extraEngines = new ConcurrentHashMap<>();
     private final Map<String, CountDownLatch> engineInitLatches = new ConcurrentHashMap<>();
+    private final Map<String, String> lastAppliedVoiceState = new ConcurrentHashMap<>();
 
-    private volatile boolean isStopped = false;
+    private final Object synthLock = new Object();
+    private final AtomicLong activeRequestId = new AtomicLong(0);
     private volatile CountDownLatch activeSynthLatch = null;
 
     @Override
     public void onCreate() {
         super.onCreate();
         prefs = getSharedPreferences("SpeechPlusPrefs", MODE_PRIVATE);
-        initEngines();
+        ensureEnginesReady();
     }
 
     private String getFallbackEnginePkg() {
@@ -79,7 +79,7 @@ public class SpeechPlusService extends TextToSpeechService {
         }
     }
 
-    private synchronized void initEngines() {
+    private synchronized void ensureEnginesReady() {
         if (prefs == null) prefs = getSharedPreferences("SpeechPlusPrefs", MODE_PRIVATE);
         String pEng = prefs.getString("primary_engine", "");
         if (pEng == null || pEng.isEmpty() || pEng.equals(getPackageName())) {
@@ -89,6 +89,7 @@ public class SpeechPlusService extends TextToSpeechService {
 
         if (primaryTts == null || !pEng.equals(currentPrimaryEngine)) {
             currentPrimaryEngine = pEng;
+            lastAppliedVoiceState.remove(pEng);
             if (primaryTts != null) { try { primaryTts.shutdown(); } catch (Exception ignored) {} }
             final String targetPkg = pEng;
             final CountDownLatch latch = new CountDownLatch(1);
@@ -101,6 +102,7 @@ public class SpeechPlusService extends TextToSpeechService {
 
         if (secondaryTts == null || !sEng.equals(currentSecondaryEngine)) {
             currentSecondaryEngine = sEng;
+            lastAppliedVoiceState.remove(sEng);
             if (secondaryTts != null) { try { secondaryTts.shutdown(); } catch (Exception ignored) {} }
             if (sEng != null && !sEng.isEmpty() && !sEng.equals(getPackageName())) {
                 final String targetPkg = sEng;
@@ -114,17 +116,6 @@ public class SpeechPlusService extends TextToSpeechService {
                 secondaryTts = null;
             }
         }
-
-        Set<String> keys = prefs.getStringSet("configured_lang_keys", new HashSet<>());
-        for (String k : keys) {
-            try {
-                JSONObject obj = new JSONObject(prefs.getString(k, ""));
-                String ePkg = obj.optString("engine_pkg", "");
-                if (!ePkg.isEmpty() && !"disabled".equals(ePkg) && !ePkg.equals(getPackageName())) {
-                    getOrCreateEngine(ePkg);
-                }
-            } catch (Exception ignored) {}
-        }
     }
 
     private boolean containsDevanagari(String s) {
@@ -136,14 +127,24 @@ public class SpeechPlusService extends TextToSpeechService {
         return false;
     }
 
+    private boolean hasPronounceableContent(String s) {
+        if (s == null) return false;
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (Character.isLetterOrDigit(ch)) return true;
+        }
+        return false;
+    }
+
     @Override protected int onIsLanguageAvailable(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
     @Override protected String[] onGetLanguage() { return new String[]{"eng", "IND", ""}; }
     @Override protected int onLoadLanguage(String lang, String country, String variant) { return TextToSpeech.LANG_AVAILABLE; }
 
     @Override
     protected void onStop() {
-        isStopped = true;
-        if (activeSynthLatch != null) { activeSynthLatch.countDown(); }
+        activeRequestId.incrementAndGet();
+        CountDownLatch latch = activeSynthLatch;
+        if (latch != null) latch.countDown();
         if (primaryTts != null) { try { primaryTts.stop(); } catch (Exception ignored) {} }
         if (secondaryTts != null) { try { secondaryTts.stop(); } catch (Exception ignored) {} }
         for (TextToSpeech tts : extraEngines.values()) {
@@ -153,7 +154,10 @@ public class SpeechPlusService extends TextToSpeechService {
 
     @Override
     protected void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
-        isStopped = false;
+        final long myReqId = activeRequestId.incrementAndGet();
+        CountDownLatch prevLatch = activeSynthLatch;
+        if (prevLatch != null) prevLatch.countDown();
+
         CharSequence cs = request.getCharSequenceText();
         String rawText = cs != null ? cs.toString() : request.getText();
 
@@ -163,71 +167,158 @@ public class SpeechPlusService extends TextToSpeechService {
             return;
         }
 
-        initEngines();
-        String text = rawText.trim();
-
-        int punctLevel = prefs.getInt("punctuation_level", 0);
-        boolean hasHindi = containsDevanagari(text);
-        text = applyPunctuationRules(text, punctLevel, hasHindi);
-        
-        int numFormat = prefs.getInt("num_format", 0);
-        if (numFormat != 0) {
-            text = formatNumbers(text, numFormat);
-        }
-
-        if (text.trim().isEmpty()) {
-            callback.start(24000, AudioFormat.ENCODING_PCM_16BIT, 1);
-            callback.done();
-            return;
-        }
-
-        boolean forceRate = prefs.getBoolean("force_rate", false);
-        boolean forcePitch = prefs.getBoolean("force_pitch", false);
-
-        float speechRate = forceRate
-            ? Math.max(0.1f, Math.min(prefs.getInt("voice_tab_rate_progress", 50) / 50.0f, 3.0f))
-            : (request.getSpeechRate() > 0 ? request.getSpeechRate() / 100.0f : 1.0f);
-        float pitch = forcePitch
-            ? Math.max(0.1f, Math.min(prefs.getInt("voice_tab_pitch_progress", 50) / 50.0f, 3.0f))
-            : (request.getPitch() > 0 ? request.getPitch() / 100.0f : 1.0f);
-
-        StreamState streamState = new StreamState();
-        List<String> chunks = splitTextLossless(text);
-        LanguageIdentifier langId = LanguageIdentification.getClient();
-        int numLangPref = prefs.getInt("num_lang", 0); // 0=Default, 1=Hindi, 2=English
-
-        for (String chunk : chunks) {
-            if (isStopped) break;
-            String c = chunk.trim();
-            if (c.isEmpty()) continue;
-
-            String langCode = "en";
-            
-            // FAST-PATH & ZERO-LAG FIX
-            if (c.matches("^[0-9\\s,.:]+$")) { // Time (10:30) & Numbers Fast Path
-                langCode = (numLangPref == 1) ? "hi" : "en";
-            } else if (containsDevanagari(c)) {
-                langCode = "hi";
-            } else if (c.length() <= 4) { // Zero-Lag for small words/spellings/swipe
-                langCode = "en"; 
-            } else { // Only run ML Kit Scanner on bigger sentences
-                try {
-                    String dl = Tasks.await(langId.identifyLanguage(c), 100, TimeUnit.MILLISECONDS);
-                    if (dl != null && !"und".equals(dl)) langCode = dl;
-                } catch (Exception ignored) {}
+        synchronized (synthLock) {
+            if (activeRequestId.get() != myReqId) {
+                callback.start(24000, AudioFormat.ENCODING_PCM_16BIT, 1);
+                callback.done();
+                return;
             }
-            routeAndSynthesize(c, speechRate, pitch, langCode, callback, streamState);
-        }
 
-        if (!streamState.started) {
-            callback.start(24000, AudioFormat.ENCODING_PCM_16BIT, 1);
+            ensureEnginesReady();
+            String text = rawText.trim();
+
+            int punctLevel = prefs.getInt("punctuation_level", 0);
+            boolean hasHindi = containsDevanagari(text);
+            text = applyPunctuationRules(text, punctLevel, hasHindi);
+
+            int numFormat = prefs.getInt("num_format", 0);
+            if (numFormat != 0) {
+                text = formatNumbers(text, numFormat);
+            }
+
+            if (text.trim().isEmpty()) {
+                callback.start(24000, AudioFormat.ENCODING_PCM_16BIT, 1);
+                callback.done();
+                return;
+            }
+
+            boolean forceRate = prefs.getBoolean("force_rate", false);
+            boolean forcePitch = prefs.getBoolean("force_pitch", false);
+
+            float speechRate = forceRate
+                ? Math.max(0.1f, Math.min(prefs.getInt("voice_tab_rate_progress", 50) / 50.0f, 3.0f))
+                : (request.getSpeechRate() > 0 ? request.getSpeechRate() / 100.0f : 1.0f);
+            float pitch = forcePitch
+                ? Math.max(0.1f, Math.min(prefs.getInt("voice_tab_pitch_progress", 50) / 50.0f, 3.0f))
+                : (request.getPitch() > 0 ? request.getPitch() / 100.0f : 1.0f);
+
+            int numLangPref = prefs.getInt("num_lang", 0); // 0=Default, 1=English, 2=Hindi
+            StreamState streamState = new StreamState();
+            List<String> chunks = splitTextSmart(text, numLangPref);
+
+            for (String chunk : chunks) {
+                if (activeRequestId.get() != myReqId) break;
+                String c = chunk.trim();
+                if (c.isEmpty() || !hasPronounceableContent(c)) continue;
+
+                String langCode = detectScriptInstant(c, numLangPref, hasHindi);
+                routeAndSynthesize(c, speechRate, pitch, langCode, callback, streamState, myReqId);
+            }
+
+            if (!streamState.started) {
+                callback.start(24000, AudioFormat.ENCODING_PCM_16BIT, 1);
+                streamState.started = true;
+            } else if (activeRequestId.get() == myReqId && streamState.totalBytesStreamed > 0) {
+                // Tail padding so short spellings/words never get cut off by Android AudioTrack
+                int minBytesForHalfSec = streamState.sampleRate; // ~250ms in 16-bit mono
+                if (streamState.totalBytesStreamed < minBytesForHalfSec) {
+                    int tailBytes = (int) (streamState.sampleRate * 0.100 * 2); // 100ms tail silence
+                    if (tailBytes % 2 != 0) tailBytes++;
+                    byte[] tailSilence = new byte[tailBytes];
+                    int maxBuf = Math.max(1024, Math.min(4096, callback.getMaxBufferSize()));
+                    if (maxBuf % 2 != 0) maxBuf--;
+                    int off = 0;
+                    while (off < tailSilence.length && activeRequestId.get() == myReqId) {
+                        int len = Math.min(maxBuf, tailSilence.length - off);
+                        callback.audioAvailable(tailSilence, off, len);
+                        off += len;
+                    }
+                }
+            }
+            callback.done();
         }
-        callback.done();
     }
 
     private static class StreamState {
         boolean started = false;
         int sampleRate = 24000;
+        int totalBytesStreamed = 0;
+    }
+
+    private String detectScriptInstant(String chunk, int numLangPref, boolean textHasHindi) {
+        boolean onlyNumAndPunct = true;
+        boolean hasDigit = false;
+        for (int i = 0; i < chunk.length(); i++) {
+            char ch = chunk.charAt(i);
+            if (ch >= '0' && ch <= '9') {
+                hasDigit = true;
+            } else if (Character.isLetter(ch)) {
+                onlyNumAndPunct = false;
+                if (ch >= '\u0900' && ch <= '\u097F') return "hi";
+                if (ch >= '\u0980' && ch <= '\u09FF') return "bn";
+                if (ch >= '\u0A00' && ch <= '\u0A7F') return "pa";
+                if (ch >= '\u0A80' && ch <= '\u0AFF') return "gu";
+                if (ch >= '\u0B00' && ch <= '\u0B7F') return "or";
+                if (ch >= '\u0B80' && ch <= '\u0BFF') return "ta";
+                if (ch >= '\u0C00' && ch <= '\u0C7F') return "te";
+                if (ch >= '\u0C80' && ch <= '\u0CFF') return "kn";
+                if (ch >= '\u0D00' && ch <= '\u0D7F') return "ml";
+                if (ch >= '\u0600' && ch <= '\u06FF') return "ur";
+            }
+        }
+        if (onlyNumAndPunct && hasDigit) {
+            if (numLangPref == 2) return "hi";
+            if (numLangPref == 1) return "en";
+            return textHasHindi ? "hi" : "en";
+        }
+        return "en";
+    }
+
+    private List<String> splitTextSmart(String text, int numLangPref) {
+        List<String> result = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int lastScript = 0;
+
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            int script = 0;
+            if (ch >= '\u0900' && ch <= '\u097F') {
+                script = 1; // Hindi
+            } else if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
+                script = 2; // English
+            } else if (ch >= '\u0980' && ch <= '\u0D7F') {
+                script = 4; // Regional Indian script
+            } else if (ch >= '0' && ch <= '9') {
+                // Only split numbers if user forced a specific number language different from current script
+                if (numLangPref == 2 && lastScript == 2) script = 3;
+                else if (numLangPref == 1 && lastScript == 1) script = 3;
+                else script = lastScript;
+            }
+
+            if (script != 0 && lastScript != 0 && script != lastScript && current.length() > 0) {
+                result.add(current.toString());
+                current.setLength(0);
+            }
+            current.append(ch);
+            if (script != 0) lastScript = script;
+
+            // Clean sentence splitting for long texts so TTS never stops mid-way
+            if ((ch == '.' || ch == '!' || ch == '?' || ch == '\n' || ch == '।') && current.length() >= 55) {
+                if (i + 1 >= text.length() || Character.isWhitespace(text.charAt(i + 1))) {
+                    result.add(current.toString());
+                    current.setLength(0);
+                    lastScript = 0;
+                }
+            } else if ((ch == ',' || ch == ';' || Character.isWhitespace(ch)) && current.length() >= 130) {
+                result.add(current.toString());
+                current.setLength(0);
+                lastScript = 0;
+            }
+        }
+        if (current.length() > 0) {
+            result.add(current.toString());
+        }
+        return result;
     }
 
     private String formatNumbers(String text, int formatType) {
@@ -237,13 +328,13 @@ public class SpeechPlusService extends TextToSpeechService {
         while (m.find()) {
             sb.append(text.substring(lastEnd, m.start()));
             String num = m.group();
-            if (formatType == 1) { 
+            if (formatType == 1) {
                 for (int i = 0; i < num.length(); i++) sb.append(num.charAt(i)).append(" ");
-            } else if (formatType == 2) { 
+            } else if (formatType == 2) {
                 for (int i = 0; i < num.length(); i += 2) {
                     sb.append(num.substring(i, Math.min(i + 2, num.length()))).append(" ");
                 }
-            } else if (formatType == 3) { 
+            } else if (formatType == 3) {
                 for (int i = 0; i < num.length(); i += 3) {
                     sb.append(num.substring(i, Math.min(i + 3, num.length()))).append(" ");
                 }
@@ -254,50 +345,6 @@ public class SpeechPlusService extends TextToSpeechService {
         return sb.toString();
     }
 
-    private List<String> splitTextLossless(String text) {
-        List<String> result = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        int lastScript = 0;
-
-        for (int i = 0; i < text.length(); i++) {
-            char ch = text.charAt(i);
-            int script = 0;
-            if (ch >= '\u0900' && ch <= '\u097F') {
-                script = 1;
-            } else if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) {
-                script = 2;
-            } else if (ch >= '0' && ch <= '9') {
-                script = 3; 
-            } else if (ch == ':' && lastScript == 3) {
-                script = 3; // Keep Time together (10:30 fix)
-            }
-
-            if (script != 0 && lastScript != 0 && script != lastScript && current.length() > 0) {
-                result.add(current.toString());
-                current.setLength(0);
-            }
-            current.append(ch);
-            if (script != 0) lastScript = script;
-
-            if ((ch == '.' || ch == '!' || ch == '?' || ch == '\n' || ch == '।') && current.length() >= 80) {
-                if (i + 1 < text.length() && Character.isWhitespace(text.charAt(i + 1))) {
-                    result.add(current.toString());
-                    current.setLength(0);
-                    lastScript = 0;
-                }
-            if (current.length() >= 150 && Character.isWhitespace(ch)) {
-                result.add(current.toString());
-                current.setLength(0);
-                lastScript = 0;
-            }
-            }
-        }
-        if (current.length() > 0) {
-            result.add(current.toString());
-        }
-        return result;
-    }
-
     private String applyPunctuationRules(String text, int level, boolean isHindi) {
         String trimmed = text.trim();
         if (trimmed.length() == 1) {
@@ -305,27 +352,19 @@ public class SpeechPlusService extends TextToSpeechService {
             if (single != null) return single;
             return trimmed;
         }
-
         if (level == 3) {
             return text.replaceAll("[@#$%&*+=~^<>_\\\\/|]+", " ");
         }
-
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            boolean nextIsDevanagari = isHindi;
-            for (int j = i - 1; j >= Math.max(0, i - 4); j--) {
-                char prev = text.charAt(j);
-                if (prev >= '\u0900' && prev <= '\u097F') { nextIsDevanagari = true; break; }
-                if ((prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z')) { nextIsDevanagari = false; break; }
-            }
             String mapped = null;
             if (isSomeSymbol(c)) {
-                mapped = mapSymbol(c, nextIsDevanagari);
+                mapped = mapSymbol(c, isHindi);
             } else if (level >= 1 && isMostSymbol(c)) {
-                mapped = mapSymbol(c, nextIsDevanagari);
+                mapped = mapSymbol(c, isHindi);
             } else if (level == 2 && isAllSymbol(c)) {
-                mapped = mapSymbol(c, nextIsDevanagari);
+                mapped = mapSymbol(c, isHindi);
             }
             if (mapped != null) {
                 sb.append(" ").append(mapped).append(" ");
@@ -378,52 +417,52 @@ public class SpeechPlusService extends TextToSpeechService {
         }
     }
 
-    private void routeAndSynthesize(String chunk, float baseRate, float basePitch, String langCode, SynthesisCallback callback, StreamState state) {
-        if (isStopped) return;
+    private void routeAndSynthesize(String chunk, float baseRate, float basePitch, String langCode, SynthesisCallback callback, StreamState state, long myReqId) {
+        if (activeRequestId.get() != myReqId) return;
         int mode = prefs.getInt("tts_mode", 0);
 
-        if (mode != 0) {
+        if (mode == 2) {
             JSONObject langConfig = findLanguageConfig(langCode);
             if (langConfig != null) {
                 String engPkg = langConfig.optString("engine_pkg", "");
                 if (!engPkg.isEmpty() && !"disabled".equals(engPkg) && !engPkg.equals(getPackageName())) {
                     float lRate = prefs.getBoolean("force_rate", false) ? (float) langConfig.optDouble("rate", baseRate) : baseRate;
                     float lPitch = prefs.getBoolean("force_pitch", false) ? (float) langConfig.optDouble("pitch", basePitch) : basePitch;
-
                     TextToSpeech targetTts = getOrCreateEngine(engPkg);
                     if (targetTts != null) {
                         String variant = langConfig.optString("voice_variant", "Default");
-                        synthesizeChunkToCallback(targetTts, engPkg, chunk, lRate, lPitch, langCode, variant, callback, state);
+                        synthesizeChunkToCallback(targetTts, engPkg, chunk, lRate, lPitch, langCode, variant, callback, state, myReqId);
                         return;
                     }
                 }
             }
-
-            if (langCode.startsWith("hi") && secondaryTts != null && !currentSecondaryEngine.isEmpty()) {
-                synthesizeChunkToCallback(secondaryTts, currentSecondaryEngine, chunk, baseRate, basePitch, langCode, "Default", callback, state);
-                return;
-            }
         }
 
-        synthesizeChunkToCallback(primaryTts, currentPrimaryEngine, chunk, baseRate, basePitch, langCode, "Default", callback, state);
+        if (mode != 0 && langCode.startsWith("hi") && secondaryTts != null && !currentSecondaryEngine.isEmpty()) {
+            synthesizeChunkToCallback(secondaryTts, currentSecondaryEngine, chunk, baseRate, basePitch, langCode, "Default", callback, state, myReqId);
+            return;
+        }
+
+        synthesizeChunkToCallback(primaryTts, currentPrimaryEngine, chunk, baseRate, basePitch, langCode, "Default", callback, state, myReqId);
     }
 
-    private void synthesizeChunkToCallback(TextToSpeech tts, String enginePkg, String text, float rate, float pitch, String langCode, String variant, SynthesisCallback callback, StreamState state) {
-        if (tts == null || isStopped) return;
+    private void synthesizeChunkToCallback(TextToSpeech tts, String enginePkg, String text, float rate, float pitch, String langCode, String variant, SynthesisCallback callback, StreamState state, long myReqId) {
+
+        if (tts == null || activeRequestId.get() != myReqId) return;
+        File tempWav = null;
         try {
             CountDownLatch initLatch = engineInitLatches.get(enginePkg);
             if (initLatch != null) {
-                try { initLatch.await(2000, TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
+                try { initLatch.await(1200, TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
             }
-            if (isStopped) return;
+            if (activeRequestId.get() != myReqId) return;
 
-            applyVoiceAndLocale(tts, langCode, variant);
+            applyVoiceAndLocaleCached(tts, enginePkg, langCode, variant);
             tts.setSpeechRate(rate);
             tts.setPitch(pitch);
-            enforceAccessibilityStream(tts);
 
-            String utteranceId = "SP_" + System.nanoTime();
-            File tempWav = new File(getCacheDir(), utteranceId + ".wav");
+            String utteranceId = "SP_" + myReqId + "_" + System.nanoTime();
+            tempWav = new File(getCacheDir(), utteranceId + ".wav");
             CountDownLatch synthLatch = new CountDownLatch(1);
             activeSynthLatch = synthLatch;
 
@@ -441,37 +480,21 @@ public class SpeechPlusService extends TextToSpeechService {
 
             int res = tts.synthesizeToFile(text, params, tempWav, utteranceId);
             if (res == TextToSpeech.SUCCESS) {
-                try { synthLatch.await(20, TimeUnit.SECONDS); } catch (Exception ignored) {}
+                try { synthLatch.await(15, TimeUnit.SECONDS); } catch (Exception ignored) {}
             }
 
-            if (tempWav.exists() && tempWav.length() > 44 && !isStopped) {
-                // IMPORTANT: Send isVeryShortText=true for texts under 10 chars to trigger Warm-Up Buffer and prevent Cut-offs
-                streamWavFileToCallback(tempWav, callback, state, text.length() <= 10);
+            if (tempWav.exists() && tempWav.length() > 44 && activeRequestId.get() == myReqId) {
+                streamWavFileToCallback(tempWav, callback, state, myReqId);
+            }
+        } catch (Throwable ignored) {
+        } finally {
+            if (tempWav != null && tempWav.exists()) {
                 try { tempWav.delete(); } catch (Exception ignored) {}
-                return;
             }
-            if (tempWav.exists()) {
-                try { tempWav.delete(); } catch (Exception ignored) {}
-            }
-
-            if (!isStopped) {
-                CountDownLatch speakLatch = new CountDownLatch(1);
-                activeSynthLatch = speakLatch;
-                String fallbackId = "SPF_" + System.nanoTime();
-                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                    @Override public void onStart(String s) {}
-                    @Override public void onDone(String s) { if (fallbackId.equals(s)) speakLatch.countDown(); }
-                    @Override public void onError(String s) { if (fallbackId.equals(s)) speakLatch.countDown(); }
-                });
-                int sRes = tts.speak(text, TextToSpeech.QUEUE_ADD, params, fallbackId);
-                if (sRes == TextToSpeech.SUCCESS) {
-                    try { speakLatch.await(15, TimeUnit.SECONDS); } catch (Exception ignored) {}
-                }
-            }
-        } catch (Throwable ignored) {}
+        }
     }
 
-    private void streamWavFileToCallback(File wavFile, SynthesisCallback callback, StreamState state, boolean isVeryShortText) {
+    private void streamWavFileToCallback(File wavFile, SynthesisCallback callback, StreamState state, long myReqId) {
         try {
             byte[] fileBytes = new byte[(int) wavFile.length()];
             FileInputStream fis = new FileInputStream(wavFile);
@@ -524,26 +547,24 @@ public class SpeechPlusService extends TextToSpeechService {
                 state.sampleRate = sampleRate;
                 callback.start(state.sampleRate, AudioFormat.ENCODING_PCM_16BIT, 1);
                 state.started = true;
+
+                int warmupBytes = (int) (state.sampleRate * 0.020 * 2);
+                if (warmupBytes % 2 != 0) warmupBytes++;
+                byte[] warmup = new byte[warmupBytes];
+                callback.audioAvailable(warmup, 0, warmup.length);
+                state.totalBytesStreamed += warmup.length;
             } else if (sampleRate != state.sampleRate) {
                 pcmData = resample16BitMono(pcmData, sampleRate, state.sampleRate);
-            }
-
-            // The Warm-up Buffer: Fixes Cut-off for small spellings and letters
-            if (isVeryShortText) {
-                // Calculate exactly 40ms of silent audio buffer based on current sampleRate
-                int warmupBytes = (int) (state.sampleRate * 0.040 * 2); 
-                if (warmupBytes % 2 != 0) warmupBytes++;
-                byte[] warmup = new byte[warmupBytes]; // Array is automatically initialized to 0 (Silence)
-                callback.audioAvailable(warmup, 0, warmup.length);
             }
 
             int maxBuf = Math.max(1024, Math.min(4096, callback.getMaxBufferSize()));
             if (maxBuf % 2 != 0) maxBuf--;
             int offset = 0;
-            while (offset < pcmData.length && !isStopped) {
+            while (offset < pcmData.length && activeRequestId.get() == myReqId) {
                 int chunkLen = Math.min(maxBuf, pcmData.length - offset);
                 callback.audioAvailable(pcmData, offset, chunkLen);
                 offset += chunkLen;
+                state.totalBytesStreamed += chunkLen;
             }
         } catch (Exception ignored) {}
     }
@@ -612,9 +633,19 @@ public class SpeechPlusService extends TextToSpeechService {
         return null;
     }
 
-    private void applyVoiceAndLocale(TextToSpeech tts, String langCode, String variant) {
+    private void applyVoiceAndLocaleCached
+
+(TextToSpeech tts, String enginePkg, String langCode, String variant) {
         if (tts == null) return;
         String norm = (langCode != null && !langCode.isEmpty()) ? langCode.toLowerCase(Locale.US).trim() : "en";
+        String varKey = (variant != null && !variant.isEmpty()) ? variant : "Default";
+        String desiredState = norm + "|" + varKey;
+
+        if (desiredState.equals(lastAppliedVoiceState.get(enginePkg))) {
+            return;
+        }
+        lastAppliedVoiceState.put(enginePkg, desiredState);
+
         Locale targetLocale;
         if (norm.startsWith("hi")) {
             targetLocale = new Locale("hi", "IN");
@@ -627,51 +658,22 @@ public class SpeechPlusService extends TextToSpeechService {
         try {
             int r = tts.setLanguage(targetLocale);
             if (r < TextToSpeech.LANG_AVAILABLE && norm.startsWith("en")) {
-                targetLocale = Locale.US;
-                tts.setLanguage(targetLocale);
+                tts.setLanguage(Locale.US);
             }
         } catch (Exception ignored) {}
 
-        try {
-            Set<Voice> voices = tts.getVoices();
-            if (voices != null && !voices.isEmpty()) {
-                if (variant != null && !variant.isEmpty() && !variant.equals("Default") && !variant.equals("Default Voice")) {
+        if (!varKey.equals("Default") && !varKey.equals("Default Voice")) {
+            try {
+                Set<Voice> voices = tts.getVoices();
+                if (voices != null) {
                     for (Voice v : voices) {
-                        if (v.getName().equals(variant)) {
+                        if (v.getName().equals(varKey)) {
                             tts.setVoice(v);
                             return;
                         }
                     }
                 }
-                String targetPrefix = norm.length() >= 2 ? norm.substring(0, 2) : norm;
-                Voice currentVoice = tts.getVoice();
-                boolean wrongVoice = (currentVoice == null || currentVoice.getLocale() == null);
-                if (!wrongVoice) {
-                    String curLang = currentVoice.getLocale().getLanguage().toLowerCase(Locale.US);
-                    if (!curLang.startsWith(targetPrefix)) {
-                        wrongVoice = true;
-                    }
-                }
-                if (wrongVoice) {
-                    Voice fallbackVoice = null;
-                    for (Voice v : voices) {
-                        if (v.getLocale() != null) {
-                            String vLang = v.getLocale().getLanguage().toLowerCase(Locale.US);
-                            if (vLang.startsWith(targetPrefix)) {
-                                if (!v.isNetworkConnectionRequired()) {
-                                    fallbackVoice = v;
-                                    break;
-                                } else if (fallbackVoice == null) {
-                                    fallbackVoice = v;
-                                }
-                            }
-                        }
-                    }
-                    if (fallbackVoice != null) {
-                        tts.setVoice(fallbackVoice);
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        }
     }
 }
