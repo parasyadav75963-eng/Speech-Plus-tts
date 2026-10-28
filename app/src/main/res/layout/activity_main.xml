@@ -468,7 +468,64 @@
                     android:layout_marginBottom="6dp" />
 
                 <Button android:id="@+id/btnCheckUpdateMore" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-<TextView
+<!-- SPINNERS_START -->
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#222222"
+    android:padding="12dp"
+    android:layout_marginBottom="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Punctuation &amp; Symbols Level"
+        android:textColor="#00E676"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="4dp"/>
+    <Spinner
+        android:id="@+id/spinnerPunctuation"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#2C2C2C"
+        android:layout_marginBottom="12dp"/>
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Number Language"
+        android:textColor="#00E676"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+    <Spinner
+        android:id="@+id/spinnerNumLang"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#2C2C2C"
+        android:layout_marginBottom="12dp"/>
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Number Format"
+        android:textColor="#00E676"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp"/>
+    <Spinner
+        android:id="@+id/spinnerNumFormat"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#2C2C2C"
+        android:layout_marginBottom="4dp"/>
+</LinearLayout>
+<!-- SPINNERS_END -->
+
+    <TextView
                     android:id="@+id/tvAboutExcerpt"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -493,17 +550,4 @@
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu" />
 
-</LinearLayout><!-- SPINNERS_START -->
-<LinearLayout android:background="#222222" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp" android:orientation="vertical" android:padding="12dp">
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="4dp" android:layout_marginTop="4dp" android:text="Punctuation &amp; Symbols Level" android:textColor="#00E676" android:textSize="15sp" android:textStyle="bold"/>
-    <Spinner android:id="@+id/spinnerPunctuation" android:layout_width="match_parent" android:layout_height="50dp" android:background="#2C2C2C" android:layout_marginBottom="12dp"/>
-    
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="4dp" android:text="Number Language (नंबर्स की भाषा)" android:textColor="#00E676" android:textSize="15sp" android:textStyle="bold"/>
-    <Spinner android:id="@+id/spinnerNumLang" android:layout_width="match_parent" android:layout_height="50dp" android:background="#2C2C2C" android:layout_marginBottom="12dp"/>
-    
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="4dp" android:text="Number Format (नंबर्स पढ़ने का तरीका)" android:textColor="#00E676" android:textSize="15sp" android:textStyle="bold"/>
-    <Spinner android:id="@+id/spinnerNumFormat" android:layout_width="match_parent" android:layout_height="50dp" android:background="#2C2C2C" android:layout_marginBottom="4dp"/>
 </LinearLayout>
-<!-- SPINNERS_END -->
-
-    
