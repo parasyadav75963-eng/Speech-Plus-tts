@@ -1252,9 +1252,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (Exception ignored) {}
 
-            int finalEngines = engineCount;
-    //             int finalLangs = Math.max(discoveredLangs.size(), 2);
-            final int finalVoices = Math.max(voiceCount, 2);
+    //             int finalEngines = engineCount;
+    //     //             int finalLangs = Math.max(discoveredLangs.size(), 2);
+    //             final int finalVoices = Math.max(voiceCount, 2);
 
             prefs.edit().putInt("scanned_engines_count", finalEngines).putInt("scanned_langs_count", finalLangs).putInt("scanned_voices_count", finalVoices).apply();
             runOnUiThread(() -> progressBar.setProgress(100));
