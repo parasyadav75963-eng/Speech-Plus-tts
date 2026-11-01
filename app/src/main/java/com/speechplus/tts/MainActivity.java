@@ -799,6 +799,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
     //         });
     //     }
+    }
+
     private void checkForUpdates() {
         ProgressDialog pd = new ProgressDialog(this);
         pd.setMessage("Checking for updates...");
