@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+    private android.widget.ImageButton btnNotificationCenter;
 
     private static final int REQ_VOICE_SEARCH = 101;
     private static final int REQ_RECORD_AUDIO = 102;
@@ -163,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         edtSearch = findViewById(R.id.edtSearch);
         btnClearSearch = findViewById(R.id.btnClearSearch);
         btnVoiceSearch = findViewById(R.id.btnVoiceSearch);
+        initNotificationCenter();
 
         tabModes = findViewById(R.id.tabModes);
         tabLanguages = findViewById(R.id.tabLanguages);
@@ -1285,9 +1287,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
     // STARTUP_SCANNER_METHODS_END
-    // NOTIFICATION_CENTER_START
-    private android.widget.ImageButton btnNotificationCenter;
-
+        // NOTIFICATION_CENTER_START
     private void initNotificationCenter() {
         btnNotificationCenter = findViewById(R.id.btnNotificationCenter);
         if (btnNotificationCenter != null) {
@@ -1327,7 +1327,6 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             String desc = "Notifications button, " + finalUnread + " unread notification" + (finalUnread == 1 ? "" : "s") + ". Double tap to view.";
             btnNotificationCenter.setContentDescription(desc);
-            // Optionally tint bell green if unread exist, else white
             try {
                 if (finalUnread > 0) {
                     btnNotificationCenter.setColorFilter(android.graphics.Color.parseColor("#00E676"));
@@ -1411,7 +1410,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             obj.put("read", !isRead);
                             saveStoredNotifications(arr);
-                            showNotificationCenterDialog(); // Refresh dialog
+                            showNotificationCenterDialog();
                         } catch (Exception ignored) {}
                     });
                     btnRow.addView(btnToggleRead);
@@ -1435,7 +1434,7 @@ public class MainActivity extends AppCompatActivity {
                                 if (j != index) newArr.put(arr.getJSONObject(j));
                             }
                             saveStoredNotifications(newArr);
-                            showNotificationCenterDialog(); // Refresh dialog
+                            showNotificationCenterDialog();
                         } catch (Exception ignored) {}
                     });
                     btnRow.addView(btnDelete);
