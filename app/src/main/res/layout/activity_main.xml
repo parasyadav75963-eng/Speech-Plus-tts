@@ -108,6 +108,151 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_popup_reminder"
             android:contentDescription="Notifications button, 0 unread notifications. Double tap to view." />
+                <!-- TEXT-TO-AUDIO GENERATOR HUB -->
+                <View android:layout_width="match_parent" android:layout_height="2dp" android:background="#607D8B" android:layout_marginVertical="16dp"/>
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Text-to-Audio Generator"
+                    android:textColor="#00E676"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- 1. Multi-line Edit Box -->
+                <EditText
+                    android:id="@+id/editAudioText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minLines="4"
+                    android:gravity="top|start"
+                    android:hint="Type or paste text here to generate audio..."
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#9E9E9E"
+                    android:background="#333333"
+                    android:padding="12dp"
+                    android:textSize="16sp"
+                    android:contentDescription="Text input box for audio generation." />
+
+                <!-- 2. MAIN GENERATE BUTTON (Always Visible) -->
+                <Button
+                    android:id="@+id/btnGenerateAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:text="⚙️ Generate Audio"
+                    android:textColor="#FFFFFF"
+                    android:background="#00C853"
+                    android:textStyle="bold"
+                    android:layout_marginTop="12dp"
+                    android:contentDescription="Start generating audio from your text." />
+
+                <!-- 3. LIVE PROGRESS & STATUS (Initially Hidden) -->
+                <LinearLayout
+                    android:id="@+id/layoutAudioStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="12dp">
+
+                    <TextView
+                        android:id="@+id/tvAudioStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Initializing TTS Engine..."
+                        android:textColor="#FFEB3B"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="4dp" />
+
+                    <ProgressBar
+                        android:id="@+id/progressAudioGen"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressTint="#00E676" />
+                </LinearLayout>
+
+                <!-- 4. MEDIA CONTROLS (Initially Hidden) -->
+                <LinearLayout
+                    android:id="@+id/layoutMediaControls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginTop="16dp">
+
+                    <Button
+                        android:id="@+id/btnRewind"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:text="⏪ 10s"
+                        android:textColor="#FFFFFF"
+                        android:background="#455A64"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="Rewind 10 seconds" />
+
+                    <Button
+                        android:id="@+id/btnPlayPauseAudio"
+                        android:layout_width="0dp"
+                        android:layout_weight="1.5"
+                        android:layout_height="50dp"
+                        android:text="▶ Play"
+                        android:textColor="#FFFFFF"
+                        android:background="#2196F3"
+                        android:textStyle="bold"
+                        android:contentDescription="Play or Pause generated audio" />
+
+                    <Button
+                        android:id="@+id/btnFastForward"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:text="10s ⏩"
+                        android:textColor="#FFFFFF"
+                        android:background="#455A64"
+                        android:layout_marginStart="8dp"
+                        android:contentDescription="Fast forward 10 seconds" />
+                </LinearLayout>
+
+                <!-- 5. EXPORT OPTIONS (Initially Hidden) -->
+                <LinearLayout
+                    android:id="@+id/layoutExportControls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="24dp">
+
+                    <Button
+                        android:id="@+id/btnShareAudio"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:text="Share Audio"
+                        android:textColor="#FFFFFF"
+                        android:background="#9C27B0"
+                        android:layout_marginEnd="8dp"
+                        android:contentDescription="Share the audio file" />
+
+                    <Button
+                        android:id="@+id/btnSaveAudio"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:text="Save to Device"
+                        android:textColor="#FFFFFF"
+                        android:background="#FF9800"
+                        android:layout_marginStart="8dp"
+                        android:contentDescription="Save audio to Downloads folder" />
+                </LinearLayout>
+
 </LinearLayout>
         </ScrollView>
 

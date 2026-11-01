@@ -142,8 +142,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        fetchFirebaseNotifications();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setupTabs();
+        setupAudioGeneratorHub();
+        setupSmartAnnouncerUI();
+        showITFBWelcomeScreen();
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
@@ -977,6 +982,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if(audioMediaPlayer != null) audioMediaPlayer.release();
+        if(audioGenTts != null) audioGenTts.shutdown();
         super.onDestroy();
         if (previewTts != null) {
             try { previewTts.shutdown(); } catch (Exception ignored) {}
@@ -1463,5 +1470,319 @@ public class MainActivity extends AppCompatActivity {
         notifDialog.show();
     }
     // NOTIFICATION_CENTER_END
+
+
+    private void showITFBWelcomeScreen() {
+        android.content.SharedPreferences prefs = getSharedPreferences("speechplus_prefs", MODE_PRIVATE);
+        boolean isFirstRun = prefs.getBoolean("is_first_run_v4", true);
+        if (isFirstRun) {
+            new android.app.AlertDialog.Builder(this)
+                .setTitle("Welcome to Speech Plus TTS v4.0")
+                .setMessage("ITFB द्वारा विकसित! अब नए होम टैब, स्मार्ट एनाउंसर और ज़ीरो-लैग इंजन के साथ।")
+                .setPositiveButton("Let's Start", (dialog, which) -> {
+                    prefs.edit().putBoolean("is_first_run_v4", false).apply();
+                })
+                .setCancelable(false)
+                .show();
+        }
+    }
+
+
+    private java.util.List<String> fetchDeviceTTSLanguages(android.speech.tts.TextToSpeech ttsEngine) {
+        java.util.List<String> langList = new java.util.ArrayList<>();
+        if (ttsEngine != null) {
+            try {
+                java.util.Set<java.util.Locale> locales = ttsEngine.getAvailableLanguages();
+                if (locales != null) {
+                    for (java.util.Locale locale : locales) {
+                        langList.add(locale.getDisplayName());
+                    }
+                    java.util.Collections.sort(langList);
+                }
+            } catch (Exception e) {
+                langList.add("System Default");
+            }
+        }
+        if (langList.isEmpty()) {
+            langList.add("English");
+            langList.add("Hindi");
+        }
+        return langList;
+    }
+
+
+    private void applyZeroLagOptimizations(android.speech.tts.TextToSpeech ttsEngine) {
+        if (ttsEngine != null) {
+            try {
+                android.media.AudioManager am = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                if (am != null) {
+                    am.requestAudioFocus(null, android.media.AudioManager.STREAM_MUSIC, android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+                }
+                // Pre-warm the TTS engine to eliminate latency
+                ttsEngine.setPitch(1.0f);
+                ttsEngine.setSpeechRate(1.0f);
+            } catch (Exception ignored) {}
+        }
+    }
+
+
+    private void fetchFirebaseNotifications() {
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL("https://speechplustts-default-rtdb.firebaseio.com/notifications.json");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = in.readLine()) != null) response.append(line);
+                in.close();
+
+                String jsonStr = response.toString();
+                if (jsonStr == null || jsonStr.equals("null")) return;
+
+                org.json.JSONArray newNotifs = new org.json.JSONArray();
+                if (jsonStr.trim().startsWith("{")) {
+                    org.json.JSONObject obj = new org.json.JSONObject(jsonStr);
+                    java.util.Iterator<String> keys = obj.keys();
+                    while (keys.hasNext()) {
+                        newNotifs.put(obj.getJSONObject(keys.next()));
+                    }
+                } else if (jsonStr.trim().startsWith("[")) {
+                    newNotifs = new org.json.JSONArray(jsonStr);
+                }
+
+                saveStoredNotifications(newNotifs);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+
+    private void setupTabs() {
+        int[] tabIds = {R.id.tabHome, R.id.tabModes, R.id.tabLanguages, R.id.tabVoices, R.id.tabAdvanced, R.id.tabMore};
+        for (int id : tabIds) {
+            android.widget.Button tab = findViewById(id);
+            if (tab != null) {
+                tab.setOnClickListener(v -> {
+                    // सभी टैब्स को नार्मल (इनएक्टिव) रंग में सेट करें
+                    for (int tid : tabIds) {
+                        android.widget.Button t = findViewById(tid);
+                        if (t != null) {
+                            t.setBackgroundColor(android.graphics.Color.parseColor("#455A64"));
+                            t.setTextColor(android.graphics.Color.parseColor("#B0BEC5"));
+                        }
+                    }
+                    // क्लिक किए गए टैब को हरा (एक्टिव) करें
+                    tab.setBackgroundColor(android.graphics.Color.parseColor("#00E676"));
+                    tab.setTextColor(android.graphics.Color.parseColor("#FFFFFF"));
+                    
+                    android.widget.Toast.makeText(this, tab.getText() + " Tab Selected", android.widget.Toast.LENGTH_SHORT).show();
+                    
+                    // भविष्य में: यहाँ हम Views (Screens) स्विच करने का कोड डालेंगे
+                });
+            }
+        }
+    }
+
+
+    private void setupSmartAnnouncerUI() {
+        android.content.SharedPreferences prefs = getSharedPreferences("speechplus_prefs", MODE_PRIVATE);
+        
+        // Find Views
+        android.widget.Switch swSilent = findViewById(R.id.switchSilentMode);
+        android.widget.Switch swBattery = findViewById(R.id.switchBattery);
+        android.widget.Spinner spBatteryInt = findViewById(R.id.spinnerBatteryInterval);
+        android.widget.Switch swTime = findViewById(R.id.switchTime);
+        android.widget.Spinner spTimeFmt = findViewById(R.id.spinnerTimeFormat);
+        android.widget.Spinner spTimeInt = findViewById(R.id.spinnerTimeInterval);
+        android.widget.Switch swCall = findViewById(R.id.switchCall);
+        android.widget.Spinner spCallFmt = findViewById(R.id.spinnerCallFormat);
+        android.widget.Spinner spCallRep = findViewById(R.id.spinnerCallRepeat);
+
+        if (swSilent == null || swBattery == null) return; // UI not loaded yet
+
+        // Load Saved States
+        swSilent.setChecked(prefs.getBoolean("respect_silent_mode", false));
+        swBattery.setChecked(prefs.getBoolean("enable_battery_announcer", false));
+        spBatteryInt.setSelection(prefs.getInt("battery_interval_mode", 0));
+        swTime.setChecked(prefs.getBoolean("enable_time_announcer", false));
+        spTimeFmt.setSelection(prefs.getInt("time_format_mode", 0));
+        spTimeInt.setSelection(prefs.getInt("time_interval_mode", 3));
+        swCall.setChecked(prefs.getBoolean("enable_call_announcer", false));
+        spCallFmt.setSelection(prefs.getInt("call_format_mode", 0));
+        spCallRep.setSelection(prefs.getInt("call_repeat_count", 0));
+
+        // Set Listeners to Save Data instantly
+        swSilent.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("respect_silent_mode", isChecked).apply());
+        swBattery.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("enable_battery_announcer", isChecked).apply());
+        swTime.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("enable_time_announcer", isChecked).apply());
+        swCall.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("enable_call_announcer", isChecked).apply());
+
+        android.widget.AdapterView.OnItemSelectedListener spinnerListener = new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int pos, long id) {
+                if (parent == spBatteryInt) prefs.edit().putInt("battery_interval_mode", pos).apply();
+                else if (parent == spTimeFmt) prefs.edit().putInt("time_format_mode", pos).apply();
+                else if (parent == spTimeInt) prefs.edit().putInt("time_interval_mode", pos).apply();
+                else if (parent == spCallFmt) prefs.edit().putInt("call_format_mode", pos).apply();
+                else if (parent == spCallRep) prefs.edit().putInt("call_repeat_count", pos).apply();
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        };
+
+        spBatteryInt.setOnItemSelectedListener(spinnerListener);
+        spTimeFmt.setOnItemSelectedListener(spinnerListener);
+        spTimeInt.setOnItemSelectedListener(spinnerListener);
+        spCallFmt.setOnItemSelectedListener(spinnerListener);
+        spCallRep.setOnItemSelectedListener(spinnerListener);
+        
+        // Start Service if any announcer is enabled
+        startService(new Intent(this, SmartAnnouncerService.class));
+    }
+
+
+    private android.media.MediaPlayer audioMediaPlayer;
+    private java.io.File generatedAudioFile;
+    private android.speech.tts.TextToSpeech audioGenTts;
+
+    private void setupAudioGeneratorHub() {
+        android.widget.EditText editAudioText = findViewById(R.id.editAudioText);
+        android.widget.Button btnGenerateAudio = findViewById(R.id.btnGenerateAudio);
+        android.widget.LinearLayout layoutAudioStatus = findViewById(R.id.layoutAudioStatus);
+        android.widget.TextView tvAudioStatus = findViewById(R.id.tvAudioStatus);
+        android.widget.ProgressBar progressAudioGen = findViewById(R.id.progressAudioGen);
+        android.widget.LinearLayout layoutMediaControls = findViewById(R.id.layoutMediaControls);
+        android.widget.LinearLayout layoutExportControls = findViewById(R.id.layoutExportControls);
+        android.widget.Button btnPlayPause = findViewById(R.id.btnPlayPauseAudio);
+        android.widget.Button btnRewind = findViewById(R.id.btnRewind);
+        android.widget.Button btnFastForward = findViewById(R.id.btnFastForward);
+        android.widget.Button btnShare = findViewById(R.id.btnShareAudio);
+        android.widget.Button btnSave = findViewById(R.id.btnSaveAudio);
+
+        if (btnGenerateAudio == null) return;
+
+        btnGenerateAudio.setEnabled(false);
+        audioGenTts = new android.speech.tts.TextToSpeech(this, status -> {
+            if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                btnGenerateAudio.setEnabled(true);
+                audioGenTts.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String utteranceId) {
+                        runOnUiThread(() -> tvAudioStatus.setText("Processing text into audio..."));
+                    }
+                    @Override
+                    public void onDone(String utteranceId) {
+                        runOnUiThread(() -> {
+                            layoutAudioStatus.setVisibility(android.view.View.GONE);
+                            layoutMediaControls.setVisibility(android.view.View.VISIBLE);
+                            layoutExportControls.setVisibility(android.view.View.VISIBLE);
+                            btnGenerateAudio.setEnabled(true);
+                            android.widget.Toast.makeText(MainActivity.this, "Audio Generated Successfully!", android.widget.Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                    @Override
+                    public void onError(String utteranceId) {
+                        runOnUiThread(() -> {
+                            layoutAudioStatus.setVisibility(android.view.View.GONE);
+                            btnGenerateAudio.setEnabled(true);
+                            android.widget.Toast.makeText(MainActivity.this, "Error generating audio.", android.widget.Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            }
+        });
+
+        btnGenerateAudio.setOnClickListener(v -> {
+            String text = editAudioText.getText().toString().trim();
+            if (text.isEmpty()) {
+                android.widget.Toast.makeText(this, "Please enter some text!", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            layoutMediaControls.setVisibility(android.view.View.GONE);
+            layoutExportControls.setVisibility(android.view.View.GONE);
+            layoutAudioStatus.setVisibility(android.view.View.VISIBLE);
+            tvAudioStatus.setText("Initializing TTS Engine...");
+            progressAudioGen.setIndeterminate(true);
+            btnGenerateAudio.setEnabled(false);
+
+            if (audioMediaPlayer != null) {
+                audioMediaPlayer.release();
+                audioMediaPlayer = null;
+                btnPlayPause.setText("▶ Play");
+            }
+
+            generatedAudioFile = new java.io.File(getExternalCacheDir(), "ITFB_Generated_Audio.wav");
+            java.util.HashMap<String, String> params = new java.util.HashMap<>();
+            params.put(android.speech.tts.TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "GENERATE_AUDIO");
+            audioGenTts.synthesizeToFile(text, params, generatedAudioFile.getAbsolutePath());
+        });
+
+        btnPlayPause.setOnClickListener(v -> {
+            if (generatedAudioFile == null || !generatedAudioFile.exists()) return;
+            try {
+                if (audioMediaPlayer == null) {
+                    audioMediaPlayer = new android.media.MediaPlayer();
+                    audioMediaPlayer.setDataSource(generatedAudioFile.getAbsolutePath());
+                    audioMediaPlayer.prepare();
+                    audioMediaPlayer.setOnCompletionListener(mp -> btnPlayPause.setText("▶ Play"));
+                }
+                if (audioMediaPlayer.isPlaying()) {
+                    audioMediaPlayer.pause();
+                    btnPlayPause.setText("▶ Play");
+                } else {
+                    audioMediaPlayer.start();
+                    btnPlayPause.setText("⏸ Pause");
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+        });
+
+        btnRewind.setOnClickListener(v -> {
+            if (audioMediaPlayer != null && audioMediaPlayer.isPlaying()) {
+                audioMediaPlayer.seekTo(Math.max(audioMediaPlayer.getCurrentPosition() - 10000, 0));
+            }
+        });
+
+        btnFastForward.setOnClickListener(v -> {
+            if (audioMediaPlayer != null && audioMediaPlayer.isPlaying()) {
+                audioMediaPlayer.seekTo(Math.min(audioMediaPlayer.getCurrentPosition() + 10000, audioMediaPlayer.getDuration()));
+            }
+        });
+
+        btnShare.setOnClickListener(v -> {
+            if (generatedAudioFile == null || !generatedAudioFile.exists()) return;
+            // Bypass strict mode safely for sharing file URIs
+            android.os.StrictMode.VmPolicy.Builder builder = new android.os.StrictMode.VmPolicy.Builder();
+            android.os.StrictMode.setVmPolicy(builder.build());
+            
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_SEND);
+            intent.setType("audio/wav");
+            intent.putExtra(android.content.Intent.EXTRA_STREAM, android.net.Uri.fromFile(generatedAudioFile));
+            startActivity(android.content.Intent.createChooser(intent, "Share Audio via"));
+        });
+
+        btnSave.setOnClickListener(v -> {
+            if (generatedAudioFile == null || !generatedAudioFile.exists()) return;
+            try {
+                java.io.File downloadsFolder = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS);
+                java.io.File destFile = new java.io.File(downloadsFolder, "ITFB_Audio_" + System.currentTimeMillis() + ".wav");
+                
+                java.io.FileInputStream in = new java.io.FileInputStream(generatedAudioFile);
+                java.io.FileOutputStream out = new java.io.FileOutputStream(destFile);
+                byte[] buffer = new byte[1024];
+                int read;
+                while ((read = in.read(buffer)) != -1) out.write(buffer, 0, read);
+                in.close();
+                out.flush();
+                out.close();
+                android.widget.Toast.makeText(this, "Saved to Downloads: " + destFile.getName(), android.widget.Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                android.widget.Toast.makeText(this, "Save Failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 }

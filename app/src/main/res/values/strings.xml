@@ -1,3 +1,35 @@
 <resources>
     <string name="app_name">Speech Plus TTS Engine</string>
+
+    <string-array name="time_format_options">
+        <item>Full Format (The time is exactly...)</item>
+        <item>Short Format (It is...)</item>
+    </string-array>
+    
+    <string-array name="time_interval_options">
+        <item>Every 15 Minutes</item>
+        <item>Every 30 Minutes</item>
+        <item>Every 45 Minutes</item>
+        <item>Every 1 Hour</item>
+    </string-array>
+
+    <string-array name="battery_interval_options">
+        <item>Every 10 Percent Drop/Gain</item>
+        <item>Every 15 Minutes</item>
+        <item>Every 30 Minutes</item>
+        <item>Every 1 Hour</item>
+    </string-array>
+    
+    <string-array name="call_format_options">
+        <item>Caller Name Only</item>
+        <item>Phone Number Only</item>
+        <item>Name and Number Both</item>
+    </string-array>
+
+    <string-array name="call_repeat_options">
+        <item>Repeat 1 Time</item>
+        <item>Repeat 2 Times</item>
+        <item>Repeat 3 Times</item>
+    </string-array>
+
 </resources>
