@@ -797,7 +797,7 @@ public class MainActivity extends AppCompatActivity {
         btnOpenAboutPage.setOnClickListener(v -> {
             Intent intent = new Intent(this, AboutActivity.class);
             startActivity(intent);
-        });
+    //         });
     }
     private void checkForUpdates() {
         ProgressDialog pd = new ProgressDialog(this);
