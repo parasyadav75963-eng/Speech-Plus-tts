@@ -1084,10 +1084,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        android.widget.Button btnAppInfo = findViewById(R.id.btnAppInfo);
-        if (btnAppInfo != null) {
-            btnAppInfo.setOnClickListener(v -> showAppInfoDialog());
-        }
+        
     }
 
     private void showAppInfoDialog() {
@@ -1296,11 +1293,7 @@ public class MainActivity extends AppCompatActivity {
     // STARTUP_SCANNER_METHODS_END
         // NOTIFICATION_CENTER_START
     private void initNotificationCenter() {
-        btnNotificationCenter = findViewById(R.id.btnNotificationCenter);
-        if (btnNotificationCenter != null) {
-            btnNotificationCenter.setOnClickListener(v -> showNotificationCenterDialog());
-            updateNotificationBellState();
-        }
+        
     }
 
     private org.json.JSONArray getStoredNotifications() {
