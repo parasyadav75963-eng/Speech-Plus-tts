@@ -1066,17 +1066,12 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        android.widget.Spinner spinnerNumFormat = findViewById(R.id.spinnerNumFormat);
-        if (spinnerNumFormat != null) {
             String[] formatOptions = {
                 "Default (Standard Full Number)",
                 "Digit by Digit (Single Digits: 1 2 3 4)",
                 "Pairs (Two-Digit Groups: 12 34)",
                 "Triplets (Three-Digit Groups: 123 4)"
             };
-            spinnerNumFormat.setAdapter(createWhiteSpinnerAdapter(formatOptions));
-            spinnerNumFormat.setSelection(prefs.getInt("num_format", 0));
-            spinnerNumFormat.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
                 @Override public void onItemSelected(android.widget.AdapterView<?> p, android.view.View v, int pos, long id) {
                     prefs.edit().putInt("num_format", pos).apply();
                 }
