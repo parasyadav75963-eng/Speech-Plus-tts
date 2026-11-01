@@ -636,7 +636,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } catch (Throwable ignored) {}
             }
-            runOnUiThread(() -> {
+    //             runOnUiThread(() -> {
                 ArrayAdapter<String> varAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, variants);
                 spinnerVoiceVariant.setAdapter(varAdapter);
             });
@@ -836,7 +836,7 @@ public class MainActivity extends AppCompatActivity {
 
                     final String finalApkUrl = apkUrl;
                     final String fLatest = latestTag;
-                    runOnUiThread(() -> {
+    //                     runOnUiThread(() -> {
                         pd.dismiss();
                         if (fLatest.compareTo(currentVersion) > 0 && !finalApkUrl.isEmpty()) {
                             showUpdateDialog(fLatest, finalApkUrl);
@@ -845,13 +845,13 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    runOnUiThread(() -> {
+    //                     runOnUiThread(() -> {
                         pd.dismiss();
                         Toast.makeText(MainActivity.this, "Check update failed: HTTP " + responseCode, Toast.LENGTH_SHORT).show();
                     });
                 }
             } catch (Exception e) {
-                runOnUiThread(() -> {
+    //                 runOnUiThread(() -> {
                     pd.dismiss();
                     Toast.makeText(MainActivity.this, "Check update error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
@@ -910,7 +910,7 @@ public class MainActivity extends AppCompatActivity {
                     total += count;
                     if (fileLength > 0) {
                         int progress = (int) (total * 100 / fileLength);
-                        runOnUiThread(() -> pd.setProgress(progress));
+    //                         runOnUiThread(() -> pd.setProgress(progress));
                     }
                     out.write(buffer, 0, count);
                 }
@@ -919,12 +919,12 @@ public class MainActivity extends AppCompatActivity {
                 out.close();
                 in.close();
 
-                runOnUiThread(() -> {
+    //                 runOnUiThread(() -> {
                     pd.dismiss();
                     installApk(apkFile);
                 });
             } catch (Exception e) {
-                runOnUiThread(() -> {
+    //                 runOnUiThread(() -> {
                     pd.dismiss();
                     Toast.makeText(MainActivity.this, "Download error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
@@ -1183,7 +1183,7 @@ public class MainActivity extends AppCompatActivity {
         android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.setIndeterminate(false);
         progressBar.setMax(100);
-        progressBar.setProgress(10);
+    //         progressBar.setProgress(10);
         progressBar.setPadding(0, 10, 0, 24);
         scanLayout.addView(progressBar);
 
@@ -1222,8 +1222,8 @@ public class MainActivity extends AppCompatActivity {
                         String label = labelCs != null ? labelCs.toString() : pkg;
                         final int prog = Math.min(95, (idx * 100) / Math.max(1, total));
 
-                        runOnUiThread(() -> {
-                            progressBar.setProgress(prog);
+    //                         runOnUiThread(() -> {
+    //                             progressBar.setProgress(prog);
                             String stepMsg = "Scan in progress (" + prog + "%)... Checking TTS Engine: " + label;
                             scanStatus.setText(stepMsg);
                         });
@@ -1257,10 +1257,10 @@ public class MainActivity extends AppCompatActivity {
     //             final int finalVoices = Math.max(voiceCount, 2);
 
             prefs.edit().putInt("scanned_engines_count", finalEngines).putInt("scanned_langs_count", finalLangs).putInt("scanned_voices_count", finalVoices).apply();
-            runOnUiThread(() -> progressBar.setProgress(100));
+    //             runOnUiThread(() -> progressBar.setProgress(100));
             try { Thread.sleep(400); } catch (Exception ignored) {}
 
-            runOnUiThread(() -> {
+    //             runOnUiThread(() -> {
                 if (!isFinishing() && scanDialog.isShowing()) scanDialog.dismiss();
                 String doneMsg = "Scan Complete! Found " + finalEngines + " TTS Engines, " + finalLangs + " Languages, and " + finalVoices + " Voices.";
                 android.widget.Toast.makeText(MainActivity.this, doneMsg, android.widget.Toast.LENGTH_LONG).show();
@@ -1319,7 +1319,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
 
         final int finalUnread = unreadCount;
-        runOnUiThread(() -> {
+    //         runOnUiThread(() -> {
             String desc = "Notifications button, " + finalUnread + " unread notification" + (finalUnread == 1 ? "" : "s") + ". Double tap to view.";
             btnNotificationCenter.setContentDescription(desc);
             try {
@@ -1659,11 +1659,11 @@ public class MainActivity extends AppCompatActivity {
                 audioGenTts.setOnUtteranceProgressListener(new android.speech.tts.UtteranceProgressListener() {
                     @Override
                     public void onStart(String utteranceId) {
-                        runOnUiThread(() -> tvAudioStatus.setText("Processing text into audio..."));
+    //                         runOnUiThread(() -> tvAudioStatus.setText("Processing text into audio..."));
                     }
                     @Override
                     public void onDone(String utteranceId) {
-                        runOnUiThread(() -> {
+    //                         runOnUiThread(() -> {
                             layoutAudioStatus.setVisibility(android.view.View.GONE);
                             layoutMediaControls.setVisibility(android.view.View.VISIBLE);
                             layoutExportControls.setVisibility(android.view.View.VISIBLE);
@@ -1673,7 +1673,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     @Override
                     public void onError(String utteranceId) {
-                        runOnUiThread(() -> {
+    //                         runOnUiThread(() -> {
                             layoutAudioStatus.setVisibility(android.view.View.GONE);
                             btnGenerateAudio.setEnabled(true);
                             android.widget.Toast.makeText(MainActivity.this, "Error generating audio.", android.widget.Toast.LENGTH_SHORT).show();
