@@ -48,7 +48,8 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
+                                <TextView
+                    android:id="@+id/tvWelcome"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Welcome to Speech Plus TTS"
@@ -58,12 +59,41 @@
                     android:layout_marginBottom="8dp"/>
 
                 <TextView
+                    android:id="@+id/tvAppInfo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Status: Active | Dynamic Language Engine Loaded"
                     android:textColor="#00E676"
                     android:textSize="14sp"
                     android:layout_marginBottom="16dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <Button
+                        android:id="@+id/btnNotificationCenter"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:text="🔔 Notifications"
+                        android:textColor="#FFFFFF"
+                        android:background="#2196F3"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnCheckUpdate"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="50dp"
+                        android:text="🔄 Updates"
+                        android:textColor="#FFFFFF"
+                        android:background="#9C27B0"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
 
                 <!-- SMART ANNOUNCER SETTINGS -->
                 <View android:layout_width="match_parent" android:layout_height="2dp" android:background="#607D8B" android:layout_marginVertical="16dp"/>
