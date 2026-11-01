@@ -1252,7 +1252,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (Exception ignored) {}
 
-            final int finalEngines = engineCount;
+            int finalEngines = engineCount;
             final int finalLangs = Math.max(discoveredLangs.size(), 2);
             final int finalVoices = Math.max(voiceCount, 2);
 
