@@ -209,6 +209,13 @@ public class MainActivity extends AppCompatActivity {
         // More
         btnOpenSystemTts = findViewById(R.id.btnOpenSystemTts);
         btnCheckUpdateMore = findViewById(R.id.btnCheckUpdateMore);
+        // UI_SPINNERS_START
+        if (btnCheckUpdateMore != null) {
+            btnCheckUpdateMore.setVisibility(android.view.View.GONE);
+        }
+        setupAdvancedSpinnersAndAppInfo();
+        // UI_SPINNERS_END
+
         btnOpenAboutPage = findViewById(R.id.btnOpenAboutPage);
     }
     private void setupBottomNavigation() {
@@ -845,7 +852,19 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void showUpdateDialog(String newVer, String apkUrl) {
+        private void showUpdateDialog(String newVer, String apkUrl) {
+        String currentVer = "3.1.0";
+        try {
+            currentVer = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (Exception ignored) {}
+        if (!isRemoteVersionNewer(newVer, currentVer)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("Latest Version Installed")
+                    .setMessage("You are already using the latest version of Speech Plus TTS (v" + currentVer + "). No update is required.")
+                    .setPositiveButton("OK", null)
+                    .show();
+            return;
+        }
         new AlertDialog.Builder(this)
                 .setTitle("Update Available")
                 .setMessage("A new version (v" + newVer + ") is available. Download now?")
@@ -853,6 +872,7 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
 
     private void downloadAndInstallApk(String downloadUrl) {
         ProgressDialog pd = new ProgressDialog(this);
@@ -966,57 +986,138 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void showWhatsNewDialogIfNeeded() {
-        String currentAppVersion = "1.6.0";
-        try {
-            currentAppVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        } catch (Exception ignored) {}
-        final String appVer = currentAppVersion;
-
-        android.content.SharedPreferences sp = getSharedPreferences("speech_plus_prefs", MODE_PRIVATE);
-        String savedVer = sp.getString("whats_new_dismissed_ver", "");
-        if (appVer.equals(savedVer)) return;
-
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(50, 20, 50, 10);
-
-        android.widget.TextView tv = new android.widget.TextView(this);
-        tv.setTextSize(14f);
-        tv.setTextColor(android.graphics.Color.LTGRAY);
-        tv.setText("• 🔥 Auto TTS Integration: ML Kit की मदद से 100+ भाषाओं को अपने-आप पहचानता है।\n• 🧹 UI Cleaned: बेकार के फीचर्स को हटाकर ऐप को हल्का बनाया गया है।\n• 🚀 Zero Lag: आवाज़ों के बीच सुपर-फ़ास्ट स्विचिंग।");
-        layout.addView(tv);
-
-        android.widget.CheckBox cb = new android.widget.CheckBox(this);
-        cb.setText("Don't show again for this version");
-        cb.setTextColor(android.graphics.Color.WHITE);
-        layout.addView(cb);
-
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("What's New in Speech Plus TTS v1.6.0")
-                .setView(layout)
-                .setPositiveButton("GOT IT", (d, w) -> {
-                    if (cb.isChecked()) {
-                        sp.edit().putString("whats_new_dismissed_ver", appVer).apply();
-                    }
-                })
-                .setCancelable(false)
-                .show();
+        private void showWhatsNewDialogIfNeeded() {
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::showItfbWelcomeAndScanner, 250);
     }
-                // STARTUP_SCANNER_METHODS_START
+
+    // STARTUP_SCANNER_METHODS_START
     private boolean hasShownSessionIntro = false;
+
+    private android.widget.ArrayAdapter<String> createWhiteSpinnerAdapter(String[] items) {
+        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
+            @Override
+            public android.view.View getView(int position, android.view.View convertView, android.view.ViewGroup parent) {
+                android.view.View v = super.getView(position, convertView, parent);
+                if (v instanceof android.widget.TextView) {
+                    ((android.widget.TextView) v).setTextColor(android.graphics.Color.WHITE);
+                    ((android.widget.TextView) v).setTextSize(15f);
+                    v.setPadding(20, 20, 20, 20);
+                }
+                return v;
+            }
+            @Override
+            public android.view.View getDropDownView(int position, android.view.View convertView, android.view.ViewGroup parent) {
+                android.view.View v = super.getDropDownView(position, convertView, parent);
+                if (v instanceof android.widget.TextView) {
+                    ((android.widget.TextView) v).setTextColor(android.graphics.Color.WHITE);
+                    ((android.widget.TextView) v).setBackgroundColor(android.graphics.Color.parseColor("#2C2C2C"));
+                    ((android.widget.TextView) v).setTextSize(15f);
+                    v.setPadding(28, 28, 28, 28);
+                }
+                return v;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
+    }
+
+    private void setupAdvancedSpinnersAndAppInfo() {
+        android.widget.Spinner spinnerPunctuation = findViewById(R.id.spinnerPunctuation);
+        if (spinnerPunctuation != null) {
+            String[] punctOptions = {
+                "Some (Essential Symbols - Default)",
+                "Most (Common Symbols & Punctuation)",
+                "All (Every Punctuation & Symbol)",
+                "None (Ignore All Symbols)"
+            };
+            spinnerPunctuation.setAdapter(createWhiteSpinnerAdapter(punctOptions));
+            spinnerPunctuation.setSelection(prefs.getInt("punctuation_level", 0));
+            spinnerPunctuation.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                @Override public void onItemSelected(android.widget.AdapterView<?> p, android.view.View v, int pos, long id) {
+                    prefs.edit().putInt("punctuation_level", pos).apply();
+                }
+                @Override public void onNothingSelected(android.widget.AdapterView<?> p) {}
+            });
+        }
+
+        android.widget.Spinner spinnerNumLang = findViewById(R.id.spinnerNumLang);
+        if (spinnerNumLang != null) {
+            String[] langOptions = {
+                "Default (Match Sentence Language)",
+                "English (Always Read Numbers in English)",
+                "Hindi (Always Read Numbers in Hindi)"
+            };
+            spinnerNumLang.setAdapter(createWhiteSpinnerAdapter(langOptions));
+            spinnerNumLang.setSelection(prefs.getInt("num_lang", 0));
+            spinnerNumLang.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                @Override public void onItemSelected(android.widget.AdapterView<?> p, android.view.View v, int pos, long id) {
+                    prefs.edit().putInt("num_lang", pos).apply();
+                }
+                @Override public void onNothingSelected(android.widget.AdapterView<?> p) {}
+            });
+        }
+
+        android.widget.Spinner spinnerNumFormat = findViewById(R.id.spinnerNumFormat);
+        if (spinnerNumFormat != null) {
+            String[] formatOptions = {
+                "Default (Standard Full Number)",
+                "Digit by Digit (Single Digits: 1 2 3 4)",
+                "Pairs (Two-Digit Groups: 12 34)",
+                "Triplets (Three-Digit Groups: 123 4)"
+            };
+            spinnerNumFormat.setAdapter(createWhiteSpinnerAdapter(formatOptions));
+            spinnerNumFormat.setSelection(prefs.getInt("num_format", 0));
+            spinnerNumFormat.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                @Override public void onItemSelected(android.widget.AdapterView<?> p, android.view.View v, int pos, long id) {
+                    prefs.edit().putInt("num_format", pos).apply();
+                }
+                @Override public void onNothingSelected(android.widget.AdapterView<?> p) {}
+            });
+        }
+
+        android.widget.Button btnAppInfo = findViewById(R.id.btnAppInfo);
+        if (btnAppInfo != null) {
+            btnAppInfo.setOnClickListener(v -> showAppInfoDialog());
+        }
+    }
+
+    private void showAppInfoDialog() {
+        String infoMessage =
+            "App Name: Speech Plus TTS\n" +
+            "Version Name: v3.1.0 (Build 31)\n" +
+            "Last Updated: November 2026\n" +
+            "Developer: Paras Yadav (ITFB Community)\n\n" +
+            "Why Speech Plus TTS Was Built:\n" +
+            "Speech Plus TTS was created with a dedicated Zero-Lag mission for blind and visually impaired Android users. It solves critical screen-reader challenges including speech latency, dual-voice overlapping, clipping of short words/spellings, and sudden stops during long paragraphs.\n\n" +
+            "Latest Core Features in v3.1.0:\n" +
+            "• 100% Accessibility Volume Direct PCM Audio Streaming\n" +
+            "• Instant Unicode Script Detection (Hindi, English & Indian Regional Languages)\n" +
+            "• Non-Overlapping Dual & Auto Multi-Language TTS Switching\n" +
+            "• Advanced Punctuation Level Control (Some, Most, All, None)\n" +
+            "• Custom Number Reading Language & Digit Formatting (Single Digits, Pairs, Triplets)\n" +
+            "• Lead-in Warmup & Tail Silence Guard for Short Words\n" +
+            "• Smart Sentence Splitter & Extended Timeout for Long Texts";
+
+        new AlertDialog.Builder(this)
+            .setTitle("App Info - Speech Plus TTS v3.1.0")
+            .setMessage(infoMessage)
+            .setPositiveButton("CLOSE", null)
+            .show();
+    }
 
     private void showItfbWelcomeAndScanner() {
         if (hasShownSessionIntro || isFinishing()) return;
         hasShownSessionIntro = true;
 
+        android.widget.ScrollView scroll = new android.widget.ScrollView(this);
         android.widget.LinearLayout root = new android.widget.LinearLayout(this);
         root.setOrientation(android.widget.LinearLayout.VERTICAL);
         root.setPadding(50, 45, 50, 35);
         root.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"));
+        scroll.addView(root);
 
         android.widget.TextView titleView = new android.widget.TextView(this);
-        titleView.setText("Welcome to Speech Plus TTS (ITFB & Community)");
+        titleView.setText("Welcome to Speech Plus TTS (ITFB Community)");
         titleView.setTextColor(android.graphics.Color.parseColor("#00E676"));
         titleView.setTextSize(19f);
         titleView.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -1025,15 +1126,14 @@ public class MainActivity extends AppCompatActivity {
 
         android.widget.TextView descView = new android.widget.TextView(this);
         descView.setText(
-            "About ITFB (Interested Technology For Blind) & Community:\n\n" +
-            "Speech Plus TTS is built with a Zero-Lag mission for visually impaired users, proudly developed by Paras Yadav in collaboration with ITFB (Interested Technology For Blind) and our dedicated accessibility community.\n\n" +
-            "Core Features of Speech Plus TTS:\n" +
-            "1. 100% Accessibility Volume PCM Streaming (Zero-Lag response).\n" +
-            "2. Smart Script Splitter & Multi-language Dual TTS (Hindi & English seamless switching without overlap).\n" +
-            "3. Advanced Punctuation & Number formatting/language controls.\n" +
-            "4. Warm-up Buffer protection to prevent clipping of small words and spellings.\n" +
-            "5. Expanded timeout protection for uninterrupted long paragraph reading.\n\n" +
-            "Tap 'CONTINUE WITH APP' below to scan your device's available languages and voices and enter the app."
+            "About Interested Technology For Blind (ITFB) & Speech Plus TTS:\n\n" +
+            "Speech Plus TTS is an ultra-fast, accessible Text-to-Speech engine built with a Zero-Lag mission for blind and visually impaired users, developed by Paras Yadav in collaboration with Interested Technology For Blind (ITFB).\n\n" +
+            "Core Features of This App:\n" +
+            "• Zero-Lag Instant Response: Pre-warmed direct PCM streaming for fast screen navigation.\n" +
+            "• Seamless Multi-Language Switching: Reads Hindi, English, and regional scripts accurately without two voices speaking at once.\n" +
+            "• Customizable Punctuation & Numbers: Full control over symbol levels, number language, and digit-by-digit reading in the Advanced tab.\n" +
+            "• Crystal Clear Short & Long Text Reading: Protects single letters from clipping and reads long articles without stopping.\n\n" +
+            "Tap 'CONTINUE WITH APP' below to automatically scan your device's installed TTS engines, languages, and voices."
         );
         descView.setTextColor(android.graphics.Color.WHITE);
         descView.setTextSize(14.5f);
@@ -1050,8 +1150,8 @@ public class MainActivity extends AppCompatActivity {
         btnContinue.setPadding(24, 28, 24, 28);
         root.addView(btnContinue);
 
-        android.app.AlertDialog welcomeDialog = new android.app.AlertDialog.Builder(this)
-            .setView(root)
+        AlertDialog welcomeDialog = new AlertDialog.Builder(this)
+            .setView(scroll)
             .setCancelable(false)
             .create();
 
@@ -1072,26 +1172,28 @@ public class MainActivity extends AppCompatActivity {
         scanLayout.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"));
 
         android.widget.TextView scanTitle = new android.widget.TextView(this);
-        scanTitle.setText("Scanning Device Languages & Voices...");
+        scanTitle.setText("Scan in Progress...");
         scanTitle.setTextColor(android.graphics.Color.parseColor("#00E676"));
         scanTitle.setTextSize(18f);
         scanTitle.setTypeface(null, android.graphics.Typeface.BOLD);
         scanTitle.setPadding(0, 0, 0, 20);
         scanLayout.addView(scanTitle);
 
-        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
-        progressBar.setIndeterminate(true);
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar.setIndeterminate(false);
+        progressBar.setMax(100);
+        progressBar.setProgress(10);
         progressBar.setPadding(0, 10, 0, 24);
         scanLayout.addView(progressBar);
 
         android.widget.TextView scanStatus = new android.widget.TextView(this);
-        String initialMsg = "Scan in progress... Scanning available device languages and voices.\nस्कैन प्रगति पर है... डिवाइस की सभी भाषाएँ और आवाज़ें स्कैन की जा रही हैं...";
+        String initialMsg = "Scan in progress... Scanning available device languages and voices. Please wait.";
         scanStatus.setText(initialMsg);
         scanStatus.setTextColor(android.graphics.Color.WHITE);
         scanStatus.setTextSize(15f);
         scanLayout.addView(scanStatus);
 
-        android.app.AlertDialog scanDialog = new android.app.AlertDialog.Builder(this)
+        AlertDialog scanDialog = new AlertDialog.Builder(this)
             .setView(scanLayout)
             .setCancelable(false)
             .create();
@@ -1107,16 +1209,21 @@ public class MainActivity extends AppCompatActivity {
             try {
                 android.content.Intent intent = new android.content.Intent(android.speech.tts.TextToSpeech.Engine.INTENT_ACTION_TTS_SERVICE);
                 java.util.List<android.content.pm.ResolveInfo> engines = getPackageManager().queryIntentServices(intent, 0);
-                if (engines != null) {
+                if (engines != null && !engines.isEmpty()) {
+                    int total = engines.size();
+                    int idx = 0;
                     for (android.content.pm.ResolveInfo info : engines) {
+                        idx++;
                         String pkg = info.serviceInfo.packageName;
                         if (getPackageName().equals(pkg)) continue;
                         engineCount++;
                         CharSequence labelCs = info.loadLabel(getPackageManager());
                         String label = labelCs != null ? labelCs.toString() : pkg;
+                        final int prog = Math.min(95, (idx * 100) / Math.max(1, total));
 
                         runOnUiThread(() -> {
-                            String stepMsg = "Scan in progress... Checking engine: " + label + "\nस्कैन प्रगति पर है...";
+                            progressBar.setProgress(prog);
+                            String stepMsg = "Scan in progress (" + prog + "%)... Checking TTS Engine: " + label;
                             scanStatus.setText(stepMsg);
                         });
 
@@ -1124,7 +1231,7 @@ public class MainActivity extends AppCompatActivity {
                         final android.speech.tts.TextToSpeech[] holder = new android.speech.tts.TextToSpeech[1];
                         holder[0] = new android.speech.tts.TextToSpeech(getApplicationContext(), status -> latch.countDown(), pkg);
 
-                        try { latch.await(2000, java.util.concurrent.TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
+                        try { latch.await(1800, java.util.concurrent.TimeUnit.MILLISECONDS); } catch (Exception ignored) {}
 
                         if (holder[0] != null) {
                             try {
@@ -1149,7 +1256,8 @@ public class MainActivity extends AppCompatActivity {
             final int finalVoices = Math.max(voiceCount, 2);
 
             prefs.edit().putInt("scanned_engines_count", finalEngines).putInt("scanned_langs_count", finalLangs).putInt("scanned_voices_count", finalVoices).apply();
-            try { Thread.sleep(600); } catch (Exception ignored) {}
+            runOnUiThread(() -> progressBar.setProgress(100));
+            try { Thread.sleep(400); } catch (Exception ignored) {}
 
             runOnUiThread(() -> {
                 if (!isFinishing() && scanDialog.isShowing()) scanDialog.dismiss();
@@ -1159,6 +1267,202 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
+
+    private boolean isRemoteVersionNewer(String remoteVer, String localVer) {
+        if (remoteVer == null || localVer == null) return false;
+        String r = remoteVer.replaceAll("[^0-9.]", "");
+        String l = localVer.replaceAll("[^0-9.]", "");
+        if (r.isEmpty() || l.isEmpty()) return false;
+        String[] rParts = r.split("\\.");
+        String[] lParts = l.split("\\.");
+        int len = Math.max(rParts.length, lParts.length);
+        for (int i = 0; i < len; i++) {
+            int rv = i < rParts.length && !rParts[i].isEmpty() ? Integer.parseInt(rParts[i]) : 0;
+            int lv = i < lParts.length && !lParts[i].isEmpty() ? Integer.parseInt(lParts[i]) : 0;
+            if (rv > lv) return true;
+            if (rv < lv) return false;
+        }
+        return false;
+    }
     // STARTUP_SCANNER_METHODS_END
+    // NOTIFICATION_CENTER_START
+    private android.widget.ImageButton btnNotificationCenter;
+
+    private void initNotificationCenter() {
+        btnNotificationCenter = findViewById(R.id.btnNotificationCenter);
+        if (btnNotificationCenter != null) {
+            btnNotificationCenter.setOnClickListener(v -> showNotificationCenterDialog());
+            updateNotificationBellState();
+        }
+    }
+
+    private org.json.JSONArray getStoredNotifications() {
+        String jsonStr = prefs.getFloat("app_notifs_ver", 0) > 0 ? prefs.getString("app_notifications_list", "[]") : "[]";
+        try {
+            return new org.json.JSONArray(jsonStr);
+        } catch (Exception e) {
+            return new org.json.JSONArray();
+        }
+    }
+
+    private void saveStoredNotifications(org.json.JSONArray arr) {
+        prefs.edit().putString("app_notifications_list", arr.toString()).putFloat("app_notifs_ver", System.currentTimeMillis()).apply();
+        updateNotificationBellState();
+    }
+
+    private void updateNotificationBellState() {
+        if (btnNotificationCenter == null) return;
+        org.json.JSONArray arr = getStoredNotifications();
+        int unreadCount = 0;
+        try {
+            for (int i = 0; i < arr.length(); i++) {
+                org.json.JSONObject obj = arr.getJSONObject(i);
+                if (!obj.optBoolean("read", false)) {
+                    unreadCount++;
+                }
+            }
+        } catch (Exception ignored) {}
+
+        final int finalUnread = unreadCount;
+        runOnUiThread(() -> {
+            String desc = "Notifications button, " + finalUnread + " unread notification" + (finalUnread == 1 ? "" : "s") + ". Double tap to view.";
+            btnNotificationCenter.setContentDescription(desc);
+            // Optionally tint bell green if unread exist, else white
+            try {
+                if (finalUnread > 0) {
+                    btnNotificationCenter.setColorFilter(android.graphics.Color.parseColor("#00E676"));
+                } else {
+                    btnNotificationCenter.setColorFilter(android.graphics.Color.WHITE);
+                }
+            } catch (Exception ignored) {}
+        });
+    }
+
+    private void showNotificationCenterDialog() {
+        org.json.JSONArray arr = getStoredNotifications();
+        android.widget.LinearLayout listLayout = new android.widget.LinearLayout(this);
+        listLayout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        listLayout.setPadding(40, 35, 40, 35);
+        listLayout.setBackgroundColor(android.graphics.Color.parseColor("#1E1E1E"));
+
+        android.widget.TextView title = new android.widget.TextView(this);
+        title.setText("ITFB & App Notifications (" + arr.length() + ")");
+        title.setTextColor(android.graphics.Color.parseColor("#00E676"));
+        title.setTextSize(18f);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setPadding(0, 0, 0, 20);
+        listLayout.addView(title);
+
+        if (arr.length() == 0) {
+            android.widget.TextView empty = new android.widget.TextView(this);
+            empty.setText("No notifications available right now.\nWhen ITFB or developer sends updates, they will appear here.");
+            empty.setTextColor(android.graphics.Color.WHITE);
+            empty.setTextSize(14.5f);
+            empty.setPadding(0, 10, 0, 20);
+            listLayout.addView(empty);
+        } else {
+            android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+            android.widget.LinearLayout innerList = new android.widget.LinearLayout(this);
+            innerList.setOrientation(android.widget.LinearLayout.VERTICAL);
+
+            try {
+                for (int i = 0; i < arr.length(); i++) {
+                    final int index = i;
+                    org.json.JSONObject obj = arr.getJSONObject(i);
+                    String notifTitle = obj.optString("title", "Update");
+                    String notifMsg = obj.optString("message", "");
+                    boolean isRead = obj.optBoolean("read", false);
+
+                    android.widget.LinearLayout itemCard = new android.widget.LinearLayout(this);
+                    itemCard.setOrientation(android.widget.LinearLayout.VERTICAL);
+                    itemCard.setBackgroundColor(android.graphics.Color.parseColor(isRead ? "#282828" : "#383838"));
+                    itemCard.setPadding(24, 20, 24, 20);
+                    android.widget.LinearLayout.LayoutParams lp = new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    lp.setMargins(0, 0, 0, 16);
+                    itemCard.setLayoutParams(lp);
+
+                    android.widget.TextView tvTitle = new android.widget.TextView(this);
+                    tvTitle.setText((isRead ? "[Read] " : "[New] ") + notifTitle);
+                    tvTitle.setTextColor(isRead ? android.graphics.Color.parseColor("#B0BEC5") : android.graphics.Color.parseColor("#00E676"));
+                    tvTitle.setTextSize(15f);
+                    tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+                    itemCard.addView(tvTitle);
+
+                    android.widget.TextView tvMsg = new android.widget.TextView(this);
+                    tvMsg.setText(notifMsg);
+                    tvMsg.setTextColor(android.graphics.Color.WHITE);
+                    tvMsg.setTextSize(14f);
+                    tvMsg.setPadding(0, 6, 0, 14);
+                    itemCard.addView(tvMsg);
+
+                    android.widget.LinearLayout btnRow = new android.widget.LinearLayout(this);
+                    btnRow.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+
+                    android.widget.Button btnToggleRead = new android.widget.Button(this);
+                    btnToggleRead.setText(isRead ? "Mark Unread" : "Mark Read");
+                    btnToggleRead.setTextSize(12f);
+                    btnToggleRead.setTextColor(android.graphics.Color.WHITE);
+                    btnToggleRead.setBackgroundColor(android.graphics.Color.parseColor("#455A64"));
+                    btnToggleRead.setPadding(16, 10, 16, 10);
+                    btnToggleRead.setOnClickListener(v -> {
+                        try {
+                            obj.put("read", !isRead);
+                            saveStoredNotifications(arr);
+                            showNotificationCenterDialog(); // Refresh dialog
+                        } catch (Exception ignored) {}
+                    });
+                    btnRow.addView(btnToggleRead);
+
+                    android.widget.Button btnDelete = new android.widget.Button(this);
+                    btnDelete.setText("Delete");
+                    btnDelete.setTextSize(12f);
+                    btnDelete.setTextColor(android.graphics.Color.WHITE);
+                    btnDelete.setBackgroundColor(android.graphics.Color.parseColor("#D32F2F"));
+                    android.widget.LinearLayout.LayoutParams lpDel = new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    lpDel.setMargins(16, 0, 0, 0);
+                    btnDelete.setLayoutParams(lpDel);
+                    btnDelete.setPadding(16, 10, 16, 10);
+                    btnDelete.setOnClickListener(v -> {
+                        try {
+                            org.json.JSONArray newArr = new org.json.JSONArray();
+                            for (int j = 0; j < arr.length(); j++) {
+                                if (j != index) newArr.put(arr.getJSONObject(j));
+                            }
+                            saveStoredNotifications(newArr);
+                            showNotificationCenterDialog(); // Refresh dialog
+                        } catch (Exception ignored) {}
+                    });
+                    btnRow.addView(btnDelete);
+
+                    itemCard.addView(btnRow);
+                    innerList.addView(itemCard);
+                }
+            } catch (Exception ignored) {}
+
+            scroll.addView(innerList);
+            android.widget.LinearLayout.LayoutParams scrollLp = new android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 800
+            );
+            scroll.setLayoutParams(scrollLp);
+            listLayout.addView(scroll);
+        }
+
+        android.app.AlertDialog notifDialog = new android.app.AlertDialog.Builder(this)
+            .setView(listLayout)
+            .setPositiveButton("CLOSE", null)
+            .setNeutralButton("CLEAR ALL", (d, w) -> {
+                saveStoredNotifications(new org.json.JSONArray());
+            })
+            .create();
+
+        notifDialog.show();
+    }
+    // NOTIFICATION_CENTER_END
 
 }

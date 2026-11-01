@@ -37,6 +37,7 @@ public class SpeechPlusService extends TextToSpeechService {
     private final Map<String, TextToSpeech> extraEngines = new ConcurrentHashMap<>();
     private final Map<String, CountDownLatch> engineInitLatches = new ConcurrentHashMap<>();
     private final Map<String, String> lastAppliedVoiceState = new ConcurrentHashMap<>();
+    private final Map<String, String> lastAppliedRatePitch = new ConcurrentHashMap<>();
 
     private final Object synthLock = new Object();
     private final AtomicLong activeRequestId = new AtomicLong(0);
@@ -68,6 +69,21 @@ public class SpeechPlusService extends TextToSpeechService {
         return "com.google.android.tts";
     }
 
+        private void preWarmEngine(TextToSpeech tts, String pkg) {
+        if (tts == null) return;
+        new Thread(() -> {
+            try {
+                enforceAccessibilityStream(tts);
+                File warmFile = new File(getCacheDir(), "warm_" + pkg.hashCode() + ".wav");
+                Bundle b = new Bundle();
+                b.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 0.0f);
+                tts.synthesizeToFile("a", b, warmFile, "WARMUP_ID");
+                Thread.sleep(500);
+                if (warmFile.exists()) warmFile.delete();
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
     private void enforceAccessibilityStream(TextToSpeech tts) {
         if (tts == null) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -97,6 +113,7 @@ public class SpeechPlusService extends TextToSpeechService {
             primaryTts = new TextToSpeech(this, status -> {
                 enforceAccessibilityStream(primaryTts);
                 latch.countDown();
+                preWarmEngine(primaryTts, targetPkg);
             }, targetPkg);
         }
 
@@ -111,6 +128,7 @@ public class SpeechPlusService extends TextToSpeechService {
                 secondaryTts = new TextToSpeech(this, status -> {
                     enforceAccessibilityStream(secondaryTts);
                     latch.countDown();
+                    preWarmEngine(secondaryTts, targetPkg);
                 }, targetPkg);
             } else {
                 secondaryTts = null;
@@ -457,9 +475,14 @@ public class SpeechPlusService extends TextToSpeechService {
             }
             if (activeRequestId.get() != myReqId) return;
 
-            applyVoiceAndLocaleCached(tts, enginePkg, langCode, variant);
-            tts.setSpeechRate(rate);
-            tts.setPitch(pitch);
+                        applyVoiceAndLocaleCached(tts, enginePkg, langCode, variant);
+            String rpKey = rate + "|" + pitch;
+            if (!rpKey.equals(lastAppliedRatePitch.get(enginePkg))) {
+                lastAppliedRatePitch.put(enginePkg, rpKey);
+                tts.setSpeechRate(rate);
+                tts.setPitch(pitch);
+            }
+
 
             String utteranceId = "SP_" + myReqId + "_" + System.nanoTime();
             tempWav = new File(getCacheDir(), utteranceId + ".wav");
@@ -548,7 +571,7 @@ public class SpeechPlusService extends TextToSpeechService {
                 callback.start(state.sampleRate, AudioFormat.ENCODING_PCM_16BIT, 1);
                 state.started = true;
 
-                int warmupBytes = (int) (state.sampleRate * 0.020 * 2);
+                int warmupBytes = (int) (state.sampleRate * 0.008 * 2);
                 if (warmupBytes % 2 != 0) warmupBytes++;
                 byte[] warmup = new byte[warmupBytes];
                 callback.audioAvailable(warmup, 0, warmup.length);

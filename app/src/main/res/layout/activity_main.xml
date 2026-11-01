@@ -416,6 +416,63 @@
                     android:text="Request Battery Unrestricted (Zero Background Kill)"
                     android:layout_marginBottom="16dp" />
 
+                            <!-- SPINNERS_START -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#222222"
+                    android:padding="12dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Punctuation &amp; Symbols Level"
+                        android:textColor="#00E676"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerPunctuation"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:background="#2C2C2C"
+                        android:layout_marginBottom="14dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Number Reading Language"
+                        android:textColor="#00E676"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerNumLang"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:background="#2C2C2C"
+                        android:layout_marginBottom="14dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Number Reading Format"
+                        android:textColor="#00E676"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp"/>
+                    <Spinner
+                        android:id="@+id/spinnerNumFormat"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:background="#2C2C2C"
+                        android:layout_marginBottom="4dp"/>
+                </LinearLayout>
+                <!-- SPINNERS_END -->
+
             </LinearLayout>
         </ScrollView>
 
@@ -468,64 +525,46 @@
                     android:layout_marginBottom="6dp" />
 
                 <Button android:id="@+id/btnCheckUpdateMore" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
-<!-- SPINNERS_START -->
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="#222222"
-    android:padding="12dp"
-    android:layout_marginBottom="16dp">
+                <!-- APP_INFO_START -->
+                <Button
+                    android:id="@+id/btnAppInfo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="APP INFO (VERSION, MISSION &amp; FEATURES)"
+                    android:backgroundTint="#00897B"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="14dp"/>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Punctuation &amp; Symbols Level"
-        android:textColor="#00E676"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp"
-        android:layout_marginTop="4dp"/>
-    <Spinner
-        android:id="@+id/spinnerPunctuation"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#2C2C2C"
-        android:layout_marginBottom="12dp"/>
-    
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Number Language"
-        android:textColor="#00E676"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp"/>
-    <Spinner
-        android:id="@+id/spinnerNumLang"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#2C2C2C"
-        android:layout_marginBottom="12dp"/>
-    
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Number Format"
-        android:textColor="#00E676"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp"/>
-    <Spinner
-        android:id="@+id/spinnerNumFormat"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#2C2C2C"
-        android:layout_marginBottom="4dp"/>
-</LinearLayout>
-<!-- SPINNERS_END -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#1E1E1E"
+                    android:padding="14dp"
+                    android:layout_marginBottom="16dp">
 
-    <TextView
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="App Info - Speech Plus TTS"
+                        android:textColor="#00E676"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="6dp"/>
+
+                    <TextView
+                        android:id="@+id/tvAppInfoSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Version Name: v3.1.0 (Code 31)\nLast Updated: November 2026\nDeveloped By: Paras Yadav (ITFB Community)\n\nWhy Speech Plus TTS Was Built:\nCreated with a Zero-Lag mission for blind and visually impaired users to eliminate speech latency, voice overlapping, and word clipping while providing instant multi-language switching.\n\nLatest Core Features:\n• Ultra-Fast Zero-Lag Direct PCM Audio Streaming\n• Smart Dual &amp; Auto Multi-Language TTS Switching\n• Custom Punctuation Level, Number Language &amp; Digit Formatting\n• Warm-Up &amp; Tail Silence Guard for Short Words/Spellings\n• Extended Timeout Protection for Long Paragraphs"
+                        android:textColor="#E0E0E0"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="4dp"/>
+                </LinearLayout>
+                <!-- APP_INFO_END -->
+
+                    <TextView
                     android:id="@+id/tvAboutExcerpt"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
