@@ -12,12 +12,22 @@
         android:scrollbars="none"
         android:background="#1E1E1E"
         android:elevation="4dp">
-        <LinearLayout
+                <LinearLayout
             android:id="@+id/tabsLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="8dp" />
+            android:padding="8dp">
+
+            <TextView android:id="@+id/tabHome" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:padding="12dp" android:textColor="#B0BEC5" android:textSize="16sp" android:textStyle="bold" android:background="#2C2C2C" android:layout_marginEnd="8dp" />
+            <TextView android:id="@+id/tabModes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Modes" android:padding="12dp" android:textColor="#B0BEC5" android:textSize="16sp" android:textStyle="bold" android:background="#2C2C2C" android:layout_marginEnd="8dp" />
+            <TextView android:id="@+id/tabLanguages" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Languages" android:padding="12dp" android:textColor="#B0BEC5" android:textSize="16sp" android:textStyle="bold" android:background="#2C2C2C" android:layout_marginEnd="8dp" />
+            <TextView android:id="@+id/tabVoices" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voices" android:padding="12dp" android:textColor="#B0BEC5" android:textSize="16sp" android:textStyle="bold" android:background="#2C2C2C" android:layout_marginEnd="8dp" />
+            <TextView android:id="@+id/tabAdvanced" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Advanced" android:padding="12dp" android:textColor="#B0BEC5" android:textSize="16sp" android:textStyle="bold" android:background="#2C2C2C" android:layout_marginEnd="8dp" />
+            <TextView android:id="@+id/tabMore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="More" android:padding="12dp" android:textColor="#B0BEC5" android:textSize="16sp" android:textStyle="bold" android:background="#2C2C2C" />
+
+        </LinearLayout>
+
     </HorizontalScrollView>
 
     <!-- Main Content Area -->
