@@ -1601,6 +1601,87 @@ public class MainActivity extends AppCompatActivity {
     private java.io.File generatedAudioFile;
     private android.speech.tts.TextToSpeech audioGenTts;
 
+        private void checkAnnouncerPermissions() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS, android.Manifest.permission.READ_PHONE_STATE}, 105);
+            }
+        } else {
+            if (checkSelfPermission(android.Manifest.permission.READ_PHONE_STATE) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.READ_PHONE_STATE}, 105);
+            }
+        }
+    }
+
+    private void setupSmartAnnouncerUI() {
+        android.content.SharedPreferences prefs = getSharedPreferences("speechplus_prefs", MODE_PRIVATE);
+        
+        android.widget.Switch swSilent = findViewById(R.id.switchSilentMode);
+        android.widget.Switch swBatt = findViewById(R.id.switchBattery);
+        android.widget.Switch swCharger = findViewById(R.id.switchCharger);
+        android.widget.Switch swBattAlerts = findViewById(R.id.switchBatteryAlerts);
+        android.widget.Switch swTime = findViewById(R.id.switchTime);
+        android.widget.Switch swCall = findViewById(R.id.switchCall);
+        
+        if (swSilent == null) return;
+
+        swSilent.setChecked(prefs.getBoolean("respect_silent_mode", false));
+        if (swBatt != null) swBatt.setChecked(prefs.getBoolean("enable_battery_announcer", false));
+        if (swCharger != null) swCharger.setChecked(prefs.getBoolean("announce_charger", false));
+        if (swBattAlerts != null) swBattAlerts.setChecked(prefs.getBoolean("announce_battery_alerts", false));
+        if (swTime != null) swTime.setChecked(prefs.getBoolean("enable_time_announcer", false));
+        if (swCall != null) swCall.setChecked(prefs.getBoolean("enable_call_announcer", false));
+
+        swSilent.setOnCheckedChangeListener((b, c) -> prefs.edit().putBoolean("respect_silent_mode", c).apply());
+
+        android.widget.Button btnSaveBatt = findViewById(R.id.btnSaveBattery);
+        if (btnSaveBatt != null) btnSaveBatt.setOnClickListener(v -> {
+            prefs.edit()
+                .putBoolean("enable_battery_announcer", swBatt != null && swBatt.isChecked())
+                .putBoolean("announce_charger", swCharger != null && swCharger.isChecked())
+                .putBoolean("announce_battery_alerts", swBattAlerts != null && swBattAlerts.isChecked())
+                .apply();
+            checkAnnouncerPermissions();
+            android.widget.Toast.makeText(this, "Battery Settings Saved!", android.widget.Toast.LENGTH_SHORT).show();
+            try { startService(new android.content.Intent(this, SmartAnnouncerService.class)); } catch(Exception e){}
+        });
+
+        android.widget.Button btnSaveTime = findViewById(R.id.btnSaveTime);
+        if (btnSaveTime != null) btnSaveTime.setOnClickListener(v -> {
+            prefs.edit().putBoolean("enable_time_announcer", swTime != null && swTime.isChecked()).apply();
+            checkAnnouncerPermissions();
+            android.widget.Toast.makeText(this, "Time Settings Saved!", android.widget.Toast.LENGTH_SHORT).show();
+            try { startService(new android.content.Intent(this, SmartAnnouncerService.class)); } catch(Exception e){}
+        });
+
+        android.widget.Button btnSaveCall = findViewById(R.id.btnSaveCall);
+        if (btnSaveCall != null) btnSaveCall.setOnClickListener(v -> {
+            prefs.edit().putBoolean("enable_call_announcer", swCall != null && swCall.isChecked()).apply();
+            checkAnnouncerPermissions();
+            android.widget.Toast.makeText(this, "Call Settings Saved!", android.widget.Toast.LENGTH_SHORT).show();
+            try { startService(new android.content.Intent(this, SmartAnnouncerService.class)); } catch(Exception e){}
+        });
+
+        android.widget.Button btnPreBatt = findViewById(R.id.btnPreviewBattery);
+        if (btnPreBatt != null) btnPreBatt.setOnClickListener(v -> {
+            android.content.Intent batteryStatus = registerReceiver(null, new android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED));
+            int level = batteryStatus != null ? batteryStatus.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1) : -1;
+            if(previewTts != null) previewTts.speak("Battery level is currently " + level + " percent", android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+
+        android.widget.Button btnPreTime = findViewById(R.id.btnPreviewTime);
+        if (btnPreTime != null) btnPreTime.setOnClickListener(v -> {
+            String currentTime = new java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()).format(new java.util.Date());
+            if(previewTts != null) previewTts.speak("The time is exactly " + currentTime, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+
+        android.widget.Button btnPreCall = findViewById(R.id.btnPreviewCall);
+        if (btnPreCall != null) btnPreCall.setOnClickListener(v -> {
+            if(previewTts != null) previewTts.speak("Incoming call from ITFB Community", android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+    }
+
+
     private void setupAudioGeneratorHub()
  {
         android.widget.EditText editAudioText = findViewById(R.id.editAudioText);
