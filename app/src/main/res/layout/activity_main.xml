@@ -32,9 +32,9 @@
                     <TextView android:id="@+id/tvAudioStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF"/>
                 </LinearLayout>
                 <LinearLayout android:id="@+id/layoutMediaControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
-                    <Button android:id="@+id/btnRewind" android:text="<<" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnRewind" android:text="&lt;&lt;" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
                     <Button android:id="@+id/btnPlayPauseAudio" android:text="Play" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content"/>
-                    <Button android:id="@+id/btnFastForward" android:text=">>" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnFastForward" android:text="&gt;&gt;" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
                 </LinearLayout>
                 <LinearLayout android:id="@+id/layoutExportControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
                     <Button android:id="@+id/btnShareAudio" android:text="Share" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
