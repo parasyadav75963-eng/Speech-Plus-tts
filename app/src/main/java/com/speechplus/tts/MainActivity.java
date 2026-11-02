@@ -856,9 +856,9 @@ public class MainActivity extends AppCompatActivity {
                     pd.dismiss();
                     Toast.makeText(MainActivity.this, "Check update error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-            }
+    // [Fixed extra bracket]             }
         }).start();
-    }
+    // [Fixed extra bracket]     }
 
         private void showUpdateDialog(String newVer, String apkUrl) {
         String currentVer = "3.1.0";
@@ -931,7 +931,7 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }).start();
-    }
+    // [Fixed extra bracket]     }
 
     private void installApk(File apkFile) {
         try {
@@ -1078,10 +1078,10 @@ public class MainActivity extends AppCompatActivity {
                 }
                 @Override public void onNothingSelected(android.widget.AdapterView<?> p) {}
             });
-        }
+    // [Fixed extra bracket]         }
 
         
-    }
+    // [Fixed extra bracket]     }
 
     private void showAppInfoDialog() {
         String infoMessage =
@@ -1268,7 +1268,7 @@ public class MainActivity extends AppCompatActivity {
                 getWindow().getDecorView().announceForAccessibility(doneMsg);
             });
         }).start();
-    }
+    // [Fixed extra bracket]     }
 
     private boolean isRemoteVersionNewer(String remoteVer, String localVer) {
         if (remoteVer == null || localVer == null) return false;
@@ -1331,7 +1331,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (Exception ignored) {}
         });
-    }
+    // [Fixed extra bracket]     }
 
     private void showNotificationCenterDialog() {
         org.json.JSONArray arr = getStoredNotifications();
@@ -1772,6 +1772,6 @@ public class MainActivity extends AppCompatActivity {
                 android.widget.Toast.makeText(this, "Save Failed: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
             }
         });
-    }
+    // [Fixed extra bracket]     }
 
-}
+    // [Fixed extra bracket] }

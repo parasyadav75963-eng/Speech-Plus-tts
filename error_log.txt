@@ -1,0 +1,121 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:generateReleaseBuildConfig
+> Task :app:javaPreCompileRelease
+> Task :app:generateReleaseResValues
+> Task :app:checkReleaseAarMetadata
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:packageReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+> Task :app:mergeReleaseResources
+
+> Task :app:processReleaseMainManifest
+package="com.speechplus.tts" found in source AndroidManifest.xml: /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.speechplus.tts" from the source AndroidManifest.xml: /data/data/com.termux/files/home/SpeechPlusTTS/app/src/main/AndroidManifest.xml.
+
+> Task :app:processReleaseManifest
+> Task :app:processReleaseManifestForPackage
+AAPT2 aapt2-8.3.0-10880808-linux Daemon #0: Unexpected error output: /data/data/com.termux/files/home/.gradle/caches/transforms-3/44274dcb68f6501610b713a93177faee/transformed/aapt2-8.3.0-10880808-linux/aapt2: 2: Syntax error: ")" unexpected
+AAPT2 aapt2-8.3.0-10880808-linux Daemon #1: Unexpected error output: /data/data/com.termux/files/home/.gradle/caches/transforms-3/44274dcb68f6501610b713a93177faee/transformed/aapt2-8.3.0-10880808-linux/aapt2: 2: Syntax error: ")" unexpected
+AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Unexpected error output: /data/data/com.termux/files/home/.gradle/caches/transforms-3/44274dcb68f6501610b713a93177faee/transformed/aapt2-8.3.0-10880808-linux/aapt2: 2: Syntax error: ")" unexpected
+> Task :app:processReleaseResources FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:processReleaseResources'.
+> Could not resolve all files for configuration ':app:releaseRuntimeClasspath'.
+   > Failed to transform play-services-base-18.1.0.aar (com.google.android.gms:play-services-base:18.1.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/040e837486d898e200c0de661243f86f/transformed/jetified-play-services-base-18.1.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #0: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform play-services-base-18.1.0.aar (com.google.android.gms:play-services-base:18.1.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/040e837486d898e200c0de661243f86f/transformed/jetified-play-services-base-18.1.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #0: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform play-services-base-18.1.0.aar (com.google.android.gms:play-services-base:18.1.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/040e837486d898e200c0de661243f86f/transformed/jetified-play-services-base-18.1.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #0: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform appcompat-1.6.1.aar (androidx.appcompat:appcompat:1.6.1) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/7c67a307a3a3796ce4c5437df08d3c96/transformed/appcompat-1.6.1.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #1: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform appcompat-1.6.1.aar (androidx.appcompat:appcompat:1.6.1) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/7c67a307a3a3796ce4c5437df08d3c96/transformed/appcompat-1.6.1.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #1: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.category=library, org.gradle.dependency.bundling=external, org.gradle.libraryelements=aar, org.gradle.status=release, org.gradle.usage=java-runtime}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+   > Failed to transform core-1.9.0.aar (androidx.core:core:1.9.0) to match attributes {artifactType=android-compiled-dependencies-resources, org.gradle.status=release}.
+      > Execution failed for AarResourcesCompilerTransform: /data/data/com.termux/files/home/.gradle/caches/transforms-3/72e9f4f06b47902ca025878ae7e862af/transformed/core-1.9.0.
+         > AAPT2 aapt2-8.3.0-10880808-linux Daemon #2: Daemon startup failed
+           This should not happen under normal circumstances, please file an issue if it does.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 47s
+15 actionable tasks: 15 executed
