@@ -1,20 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    android:orientation="vertical" android:background="#121212">
+    android:background="#121212">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="16dp" android:background="#1E1E1E" android:gravity="center_vertical">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Speech Plus TTS" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold"/>
-        <ImageButton android:id="@+id/btnNotificationCenter" android:layout_width="48dp" android:layout_height="48dp" android:src="@android:drawable/ic_popup_reminder" android:tint="#00E676" android:background="?attr/selectableItemBackground"/>
-        <ImageButton android:id="@+id/btnVoiceSearch" android:layout_width="48dp" android:layout_height="48dp" android:src="@android:drawable/ic_btn_speak_now" android:tint="#FFFFFF" android:background="?attr/selectableItemBackground"/>
+    <!-- SINGLE HEADER -->
+    <LinearLayout android:id="@+id/headerLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentTop="true" android:orientation="horizontal" android:padding="16dp" android:background="#1E1E1E" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Speech Plus TTS" android:textColor="#00E676" android:textSize="22sp" android:textStyle="bold" android:contentDescription="Speech Plus TTS App Header"/>
+        <ImageButton android:id="@+id/btnNotificationCenter" android:layout_width="48dp" android:layout_height="48dp" android:src="@android:drawable/ic_popup_reminder" android:tint="#00E676" android:background="?attr/selectableItemBackground" android:contentDescription="Notifications"/>
+        <ImageButton android:id="@+id/btnVoiceSearch" android:layout_width="48dp" android:layout_height="48dp" android:src="@android:drawable/ic_btn_speak_now" android:tint="#FFFFFF" android:background="?attr/selectableItemBackground" android:contentDescription="Voice Search"/>
     </LinearLayout>
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp">
-        <EditText android:id="@+id/edtSearch" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Search languages..." android:textColor="#FFFFFF" android:textColorHint="#AAAAAA"/>
-        <ImageButton android:id="@+id/btnClearSearch" android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_menu_close_clear_cancel" android:visibility="gone"/>
+    <!-- SEARCH BAR -->
+    <LinearLayout android:id="@+id/searchLayout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_below="@id/headerLayout" android:padding="8dp">
+        <EditText android:id="@+id/edtSearch" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Search..." android:textColor="#FFFFFF" android:textColorHint="#AAAAAA"/>
+        <ImageButton android:id="@+id/btnClearSearch" android:layout_width="40dp" android:layout_height="40dp" android:src="@android:drawable/ic_menu_close_clear_cancel" android:visibility="gone" android:contentDescription="Clear Search"/>
     </LinearLayout>
 
-    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+    <!-- BOTTOM TABS (Fixed absolutely at the bottom with proper TalkBack descriptions) -->
+    <HorizontalScrollView android:id="@+id/bottomTabs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:background="#2C2C2C" android:scrollbars="none">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="4dp">
+            <Button android:id="@+id/btnTabHome" android:text="HOME" android:contentDescription="Home Tab, Announcers and Audio Generator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#00E676" android:textColor="#FFFFFF" android:layout_marginEnd="4dp"/>
+            <Button android:id="@+id/btnTabModes" android:text="MODES" android:contentDescription="Modes Tab, Change Speed or Quality" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
+            <Button android:id="@+id/btnTabLanguages" android:text="LANGUAGES" android:contentDescription="Languages Tab, Select your preferred languages" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
+            <Button android:id="@+id/btnTabVoices" android:text="VOICES" android:contentDescription="Voices Tab, Adjust Pitch, Rate and Volume" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
+            <Button android:id="@+id/btnTabAdvanced" android:text="ADVANCED" android:contentDescription="Advanced Tab, Number Formatting and Punctuation" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
+            <Button android:id="@+id/btnTabMore" android:text="MORE" android:contentDescription="More Tab, App Information and System Controls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- MAIN CONTENT FRAME (Stays between Search and Bottom Tabs) -->
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent" android:layout_below="@id/searchLayout" android:layout_above="@id/bottomTabs">
         
         <ScrollView android:id="@+id/tabHome" android:layout_width="match_parent" android:layout_height="match_parent">
             <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
@@ -28,75 +43,67 @@
                 <Switch android:id="@+id/switchBattery" android:text="Enable Battery Announcer" android:textColor="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <Switch android:id="@+id/switchCharger" android:text="Announce Charger Connected/Disconnected" android:textColor="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content"/>
                 <Switch android:id="@+id/switchBatteryAlerts" android:text="Announce Battery Low (20%) &amp; Full" android:textColor="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                <TextView android:text="Announcement Interval:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Battery Announcement Interval:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerBatteryInterval"/>
                 <Spinner android:id="@+id/spinnerBatteryInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
                 <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                    <Button android:id="@+id/btnPreviewBattery" android:text="TEST" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-                    <Button android:id="@+id/btnSaveBattery" android:text="SAVE SETTINGS" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
+                    <Button android:id="@+id/btnPreviewBattery" android:text="TEST" android:contentDescription="Test Battery Announcer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnSaveBattery" android:text="SAVE SETTINGS" android:contentDescription="Save Battery Settings" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
                 </LinearLayout>
 
                 <TextView android:text="--- Time Announcer ---" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textStyle="bold"/>
                 <Switch android:id="@+id/switchTime" android:text="Enable Time Announcer" android:textColor="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                <TextView android:text="Time Format:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Time Format Setup:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerTimeFormat"/>
                 <Spinner android:id="@+id/spinnerTimeFormat" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
-                <TextView android:text="Announcement Interval:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Time Announcement Interval:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerTimeInterval"/>
                 <Spinner android:id="@+id/spinnerTimeInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
                 <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                    <Button android:id="@+id/btnPreviewTime" android:text="TEST" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-                    <Button android:id="@+id/btnSaveTime" android:text="SAVE SETTINGS" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
+                    <Button android:id="@+id/btnPreviewTime" android:text="TEST" android:contentDescription="Test Time Announcer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnSaveTime" android:text="SAVE SETTINGS" android:contentDescription="Save Time Settings" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
                 </LinearLayout>
+
                 <TextView android:text="--- Call Announcer ---" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textStyle="bold"/>
                 <Switch android:id="@+id/switchCall" android:text="Enable Call Announcer" android:textColor="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content"/>
-                <TextView android:text="Caller ID Format:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Caller ID Announcement Format:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerCallFormat"/>
                 <Spinner android:id="@+id/spinnerCallFormat" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
-                <TextView android:text="Repeat Announcement:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Repeat Call Announcement:" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerCallRepeat"/>
                 <Spinner android:id="@+id/spinnerCallRepeat" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
                 <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
-                    <Button android:id="@+id/btnPreviewCall" android:text="TEST" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-                    <Button android:id="@+id/btnSaveCall" android:text="SAVE SETTINGS" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
+                    <Button android:id="@+id/btnPreviewCall" android:text="TEST" android:contentDescription="Test Call Announcer" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnSaveCall" android:text="SAVE SETTINGS" android:contentDescription="Save Call Settings" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>
 
-        <ScrollView android:id="@+id/tabModes" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-            <RadioGroup android:id="@+id/radioGroupModes" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                <RadioButton android:id="@+id/radioMode0" android:text="Standard Mode (Balanced Performance)" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="12dp"/>
-                <RadioButton android:id="@+id/radioMode1" android:text="Fast Mode (Zero Latency for Screen Readers)" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="12dp"/>
-                <RadioButton android:id="@+id/radioMode2" android:text="Quality Mode (HD Voice &amp; High Accuracy)" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            </RadioGroup>
-        </ScrollView>
-
-        <ScrollView android:id="@+id/tabLanguages" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
-            <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
-                    <Button android:id="@+id/btnSelectAllLangs" android:text="Select All" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-                    <Button android:id="@+id/btnClearAllLangs" android:text="Clear All" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-                </LinearLayout>
-                <LinearLayout android:id="@+id/layoutLanguagesList" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
-            </LinearLayout>
-        </ScrollView>
         <ScrollView android:id="@+id/tabVoices" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
             <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                <TextView android:text="Select Language:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                <TextView android:text="Select Language:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerVoiceLanguage"/>
                 <Spinner android:id="@+id/spinnerVoiceLanguage" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
-                <TextView android:text="Select TTS Engine:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Select TTS Engine:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerVoiceEngine"/>
                 <Spinner android:id="@+id/spinnerVoiceEngine" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
-                <TextView android:text="Select Voice Variant:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Select Voice Variant:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerVoiceVariant"/>
                 <Spinner android:id="@+id/spinnerVoiceVariant" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
                 
                 <TextView android:id="@+id/lblVoicesRate" android:text="Speech Rate" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"/>
-                <SeekBar android:id="@+id/seekVoiceRate" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                <SeekBar android:id="@+id/seekVoiceRate" android:layout_width="match_parent" android:layout_height="wrap_content" android:contentDescription="Adjust Speech Rate"/>
+                
                 <TextView android:id="@+id/lblVoicesPitch" android:text="Speech Pitch" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
-                <SeekBar android:id="@+id/seekVoicePitch" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                <SeekBar android:id="@+id/seekVoicePitch" android:layout_width="match_parent" android:layout_height="wrap_content" android:contentDescription="Adjust Speech Pitch"/>
+                
                 <TextView android:id="@+id/lblVoicesVolume" android:text="Voice Volume" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
-                <SeekBar android:id="@+id/seekVoiceVolume" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                <SeekBar android:id="@+id/seekVoiceVolume" android:layout_width="match_parent" android:layout_height="wrap_content" android:contentDescription="Adjust Voice Volume"/>
                 
                 <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp">
                     <Button android:id="@+id/btnTestVoiceSingle" android:text="TEST" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
                     <Button android:id="@+id/btnDefaultVoice" android:text="RESET" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
                     <Button android:id="@+id/btnSaveVoiceSettings" android:text="SAVE" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
                 </LinearLayout>
-                <LinearLayout android:id="@+id/layoutConfiguredLanguages" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"/>
             </LinearLayout>
         </ScrollView>
 
@@ -107,41 +114,49 @@
                 <CheckBox android:id="@+id/chkStripAttributes" android:text="Strip Symbols &amp; Emojis" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
                 <Button android:id="@+id/btnIgnoreBattery" android:text="IGNORE BATTERY OPTIMIZATIONS" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#6200EE"/>
                 
-                <TextView android:text="Number Formatting:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"/>
+                <TextView android:text="Number Formatting Processing:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:labelFor="@+id/spinnerNumFormat"/>
                 <Spinner android:id="@+id/spinnerNumFormat" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
-                <TextView android:text="Number Language Match:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Number Language Match Rules:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerNumLang"/>
                 <Spinner android:id="@+id/spinnerNumLang" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
-                <TextView android:text="Punctuation Reading Style:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Punctuation Reading Style:" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:labelFor="@+id/spinnerPunctuation"/>
                 <Spinner android:id="@+id/spinnerPunctuation" android:layout_width="match_parent" android:layout_height="wrap_content" android:backgroundTint="#FFFFFF"/>
             </LinearLayout>
         </ScrollView>
 
         <ScrollView android:id="@+id/tabMore" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
             <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
-                <TextView android:text="System Controls" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="18sp"/>
-                <Button android:id="@+id/btnOpenSystemTts" android:text="OPEN SYSTEM TTS SETTINGS" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
                 
-                <TextView android:text="App Information" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="18sp" android:layout_marginTop="24dp"/>
-                <Button android:id="@+id/btnOpenAboutPage" android:text="ABOUT APP" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                <ImageView android:layout_width="100dp" android:layout_height="100dp" android:src="@mipmap/ic_launcher" android:layout_gravity="center" android:layout_marginBottom="16dp" android:contentDescription="App Logo"/>
+                <TextView android:text="Speech Plus TTS" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"/>
+                <TextView android:text="Version 4.0.0 (Stable)" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginBottom="24dp"/>
+
+                <TextView android:text="System Controls" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="14sp"/>
+                <Button android:id="@+id/btnOpenSystemTts" android:text="OPEN DEVICE TTS SETTINGS" android:contentDescription="Open System TTS Settings" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#6200EE"/>
                 
-                <TextView android:text="Support &amp; Community" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="18sp" android:layout_marginTop="24dp"/>
-                <Button android:id="@+id/btnJoinCommunity" android:text="JOIN ITFB COMMUNITY" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#455A64" android:textColor="#FFFFFF"/>
-                <Button android:id="@+id/btnContactUs" android:text="CONTACT US" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#455A64" android:textColor="#FFFFFF"/>
+                <TextView android:text="App Information" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="14sp" android:layout_marginTop="24dp"/>
+                <Button android:id="@+id/btnOpenAboutPage" android:text="ABOUT SPEECH PLUS TTS" android:contentDescription="About App" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
+                
+                <TextView android:text="Support &amp; Community" android:textColor="#B0BEC5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="14sp" android:layout_marginTop="24dp"/>
+                <Button android:id="@+id/btnJoinCommunity" android:text="JOIN ITFB COMMUNITY" android:contentDescription="Join Interested Technology for Blind Community" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#455A64" android:textColor="#FFFFFF"/>
+                <Button android:id="@+id/btnContactUs" android:text="CONTACT DEVELOPER" android:contentDescription="Contact Developer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:backgroundTint="#455A64" android:textColor="#FFFFFF"/>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Dummy ScrollViews to prevent app crash if tabs are clicked (Modes & Langs weren't shown as bugged but kept safe) -->
+        <ScrollView android:id="@+id/tabModes" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+            <RadioGroup android:id="@+id/radioGroupModes" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                <RadioButton android:id="@+id/radioMode0" android:text="Standard Mode" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <RadioButton android:id="@+id/radioMode1" android:text="Fast Mode (Zero Latency)" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <RadioButton android:id="@+id/radioMode2" android:text="Quality Mode (HD Voice)" android:textColor="#FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+            </RadioGroup>
+        </ScrollView>
+        <ScrollView android:id="@+id/tabLanguages" android:layout_width="match_parent" android:layout_height="match_parent" visibility="gone">
+            <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                <LinearLayout android:id="@+id/layoutLanguagesList" android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"/>
             </LinearLayout>
         </ScrollView>
 
     </FrameLayout>
-
-    <!-- BOTTOM TABS (Fixed at Bottom with Features Info) -->
-    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#2C2C2C" android:scrollbars="none" android:layout_gravity="bottom">
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="4dp">
-            <Button android:id="@+id/btnTabHome" android:text="HOME\n(Announcers)" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#00E676" android:textColor="#FFFFFF" android:layout_marginEnd="4dp"/>
-            <Button android:id="@+id/btnTabModes" android:text="MODES\n(Speed/Quality)" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
-            <Button android:id="@+id/btnTabLanguages" android:text="LANGS\n(Selection)" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
-            <Button android:id="@+id/btnTabVoices" android:text="VOICES\n(Pitch/Rate)" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
-            <Button android:id="@+id/btnTabAdvanced" android:text="ADVANCED\n(Formatting)" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5" android:layout_marginEnd="4dp"/>
-            <Button android:id="@+id/btnTabMore" android:text="MORE\n(Info/Help)" android:textSize="10sp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:backgroundTint="#455A64" android:textColor="#B0BEC5"/>
-        </LinearLayout>
-    </HorizontalScrollView>
-
-</LinearLayout>
+</RelativeLayout>

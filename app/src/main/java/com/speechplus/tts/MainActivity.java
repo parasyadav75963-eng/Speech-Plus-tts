@@ -162,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
         // CRASH CATCHER END
 
         setContentView(R.layout.activity_main);
+        setupStrictTTSAndSpinners();
         try { setupTabs(); } catch (Exception e) {}
         try { setupAudioGeneratorHub(); } catch (Exception e) {}
         try { setupSmartAnnouncerUI(); } catch (Exception e) {}
@@ -1507,8 +1508,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (langList.isEmpty()) {
-            langList.add("English");
-            langList.add("Hindi");
+            langList.add("English (ENG)");
+            langList.add("Hindi (HIND)");
         }
         return langList;
     }
@@ -1820,4 +1821,45 @@ public class MainActivity extends AppCompatActivity {
         });
         }
 
+        
+    private void setupStrictTTSAndSpinners() {
+        if (previewTts == null) {
+            previewTts = new android.speech.tts.TextToSpeech(this, status -> {
+                if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                    android.media.AudioAttributes audioAttributes = new android.media.AudioAttributes.Builder()
+                            .setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+                            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .build();
+                    previewTts.setAudioAttributes(audioAttributes);
+                }
+            });
         }
+
+        int layout = android.R.layout.simple_spinner_dropdown_item;
+        
+        android.widget.Spinner spBatt = findViewById(R.id.spinnerBatteryInterval);
+        if(spBatt != null) spBatt.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Every 5% Drop", "Every 10% Drop", "Only at 20% and 100%"}));
+
+        android.widget.Spinner spTimeFmt = findViewById(R.id.spinnerTimeFormat);
+        if(spTimeFmt != null) spTimeFmt.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"12-Hour (e.g., 02:30 PM)", "24-Hour (e.g., 14:30)"}));
+
+        android.widget.Spinner spTimeInt = findViewById(R.id.spinnerTimeInterval);
+        if(spTimeInt != null) spTimeInt.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Every 15 Minutes", "Every 30 Minutes", "Every 1 Hour"}));
+
+        android.widget.Spinner spCallFmt = findViewById(R.id.spinnerCallFormat);
+        if(spCallFmt != null) spCallFmt.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Name Only", "Number Only", "Name and Number"}));
+
+        android.widget.Spinner spCallRep = findViewById(R.id.spinnerCallRepeat);
+        if(spCallRep != null) spCallRep.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Once", "Twice", "Continuously"}));
+
+        android.widget.Spinner spNum = findViewById(R.id.spinnerNumFormat);
+        if(spNum != null) spNum.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Default (Standard Full Number)", "Default (Match Sentence Language)", "Some (Essential Symbols)"}));
+        
+        android.widget.Spinner spLang = findViewById(R.id.spinnerNumLang);
+        if(spLang != null) spLang.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Always Match", "Ignore Match"}));
+        
+        android.widget.Spinner spPunc = findViewById(R.id.spinnerPunctuation);
+        if(spPunc != null) spPunc.setAdapter(new android.widget.ArrayAdapter<>(this, layout, new String[]{"Read All", "Read None", "Custom"}));
+    }
+
+}
