@@ -161,18 +161,18 @@ public class MainActivity extends AppCompatActivity {
         // CRASH CATCHER END
 
         setContentView(R.layout.activity_main);
-        setupTabs();
-        setupAudioGeneratorHub();
-        setupSmartAnnouncerUI();
-        showITFBWelcomeScreen();
+        try { setupTabs(); } catch (Exception e) {}
+        try { setupAudioGeneratorHub(); } catch (Exception e) {}
+        try { setupSmartAnnouncerUI(); } catch (Exception e) {}
+        try { showITFBWelcomeScreen(); } catch (Exception e) {}
 
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        initViews();
+        try { initViews(); } catch (Exception e) {}
         try { setupSearchAndVoice(); } catch (Exception e) {}
         try { setupBottomNavigation(); } catch (Exception e) {}
-        loadEngines();
-        loadGlobalLanguages();
+        try { loadEngines(); } catch (Exception e) {}
+        try { loadGlobalLanguages(); } catch (Exception e) {}
 
         try { setupTabModes(); } catch (Exception e) {}
         try { setupTabLanguages(); } catch (Exception e) {}
