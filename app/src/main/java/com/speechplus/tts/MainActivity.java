@@ -38,7 +38,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView tabVoices;
     private ScrollView tabAdvanced;
     private ScrollView tabMore;
-    private BottomNavigationView bottomNav;
+    
 
     // Tab 1 (Modes) views
     
@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
 
         try { initViews(); } catch (Exception e) {}
         try { setupSearchAndVoice(); } catch (Exception e) {}
-        try { setupBottomNavigation(); } catch (Exception e) {}
+        try {  } catch (Exception e) {}
         try { loadEngines(); } catch (Exception e) {}
         try { loadGlobalLanguages(); } catch (Exception e) {}
 
@@ -196,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
         tabVoices = findViewById(R.id.tabVoices);
         tabAdvanced = findViewById(R.id.tabAdvanced);
         tabMore = findViewById(R.id.tabMore);
-        bottomNav = findViewById(R.id.bottomNavigation);
+        
 
         // Modes
         
@@ -243,17 +243,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnOpenAboutPage = findViewById(R.id.btnOpenAboutPage);
     }
-    private void setupBottomNavigation() {
-        bottomNav.setOnItemSelectedListener(item -> {
-            int id = item.getItemId();
-            tabModes.setVisibility(id == R.id.nav_modes ? View.VISIBLE : View.GONE);
-            tabLanguages.setVisibility(id == R.id.nav_languages ? View.VISIBLE : View.GONE);
-            tabVoices.setVisibility(id == R.id.nav_voices ? View.VISIBLE : View.GONE);
-            tabAdvanced.setVisibility(id == R.id.nav_advanced ? View.VISIBLE : View.GONE);
-            tabMore.setVisibility(id == R.id.nav_more ? View.VISIBLE : View.GONE);
-            return true;
-        });
-    }
+    
 
     private void setupSearchAndVoice() {
         edtSearch.addTextChangedListener(new TextWatcher() {
