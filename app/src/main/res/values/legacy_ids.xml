@@ -42,4 +42,5 @@
     <item name="spinnerVoiceLanguage" type="id" />
     <item name="spinnerVoiceVariant" type="id" />
     <item name="btnCheckUpdateMore" type="id" />
+    <item name="bottomNavigation" type="id" />
 </resources>
