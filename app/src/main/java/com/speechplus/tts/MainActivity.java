@@ -153,16 +153,16 @@ public class MainActivity extends AppCompatActivity {
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         initViews();
-        setupSearchAndVoice();
-        setupBottomNavigation();
+        try { setupSearchAndVoice(); } catch (Exception e) {}
+        try { setupBottomNavigation(); } catch (Exception e) {}
         loadEngines();
         loadGlobalLanguages();
 
-        setupTabModes();
-        setupTabLanguages();
-        setupTabVoices();
-        setupTabAdvanced();
-        setupTabMore();
+        try { setupTabModes(); } catch (Exception e) {}
+        try { setupTabLanguages(); } catch (Exception e) {}
+        try { setupTabVoices(); } catch (Exception e) {}
+        try { setupTabAdvanced(); } catch (Exception e) {}
+        try { setupTabMore(); } catch (Exception e) {}
     }
 
     private void initViews() {
