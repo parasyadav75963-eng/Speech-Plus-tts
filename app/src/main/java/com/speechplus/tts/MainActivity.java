@@ -1574,12 +1574,12 @@ public class MainActivity extends AppCompatActivity {
     private void setupTabs() {
         int[] tabIds = {R.id.tabHome, R.id.tabModes, R.id.tabLanguages, R.id.tabVoices, R.id.tabAdvanced, R.id.tabMore};
         for (int id : tabIds) {
-            android.widget.Button tab = findViewById(id);
+            android.widget.TextView tab = findViewById(id);
             if (tab != null) {
                 tab.setOnClickListener(v -> {
                     // सभी टैब्स को नार्मल (इनएक्टिव) रंग में सेट करें
                     for (int tid : tabIds) {
-                        android.widget.Button t = findViewById(tid);
+                        android.widget.TextView t = findViewById(tid);
                         if (t != null) {
                             t.setBackgroundColor(android.graphics.Color.parseColor("#455A64"));
                             t.setTextColor(android.graphics.Color.parseColor("#B0BEC5"));
