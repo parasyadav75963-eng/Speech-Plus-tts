@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Tab 5 (More) views
     private Button btnOpenSystemTts;
-    private Button btnCheckUpdateMore;
+    
     private Button btnOpenAboutPage;
 
     // Engines & Language data
@@ -235,11 +235,9 @@ public class MainActivity extends AppCompatActivity {
 
         // More
         btnOpenSystemTts = findViewById(R.id.btnOpenSystemTts);
-        btnCheckUpdateMore = findViewById(R.id.btnCheckUpdateMore);
+        
         // UI_SPINNERS_START
-        if (btnCheckUpdateMore != null) {
-            btnCheckUpdateMore.setVisibility(android.view.View.GONE);
-        }
+        
         setupAdvancedSpinnersAndAppInfo();
         // UI_SPINNERS_END
 
@@ -812,7 +810,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnCheckUpdateMore.setOnClickListener(v -> checkForUpdates());
+        
 
         btnOpenAboutPage.setOnClickListener(v -> {
             Intent intent = new Intent(this, AboutActivity.class);
