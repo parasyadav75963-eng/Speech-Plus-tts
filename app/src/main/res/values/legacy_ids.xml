@@ -43,4 +43,5 @@
     <item name="spinnerVoiceVariant" type="id" />
     <item name="btnCheckUpdateMore" type="id" />
     <item name="bottomNavigation" type="id" />
+    <item name="tabHome" type="id" />
 </resources>

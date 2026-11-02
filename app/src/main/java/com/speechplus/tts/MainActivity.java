@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton btnVoiceSearch;
 
     // 5 Tab containers
+    private ScrollView tabHome;
     private ScrollView tabModes;
     private ScrollView tabLanguages;
     private ScrollView tabVoices;
@@ -187,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
         btnVoiceSearch = findViewById(R.id.btnVoiceSearch);
         initNotificationCenter();
 
+        tabHome = findViewById(R.id.tabHome);
         tabModes = findViewById(R.id.tabModes);
         tabLanguages = findViewById(R.id.tabLanguages);
         tabVoices = findViewById(R.id.tabVoices);
