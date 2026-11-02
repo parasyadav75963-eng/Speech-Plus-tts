@@ -1571,7 +1571,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void setupTabs() {
+        private void setupTabs() {
         int[] tabIds = {R.id.tabHome, R.id.tabModes, R.id.tabLanguages, R.id.tabVoices, R.id.tabAdvanced, R.id.tabMore};
         for (int id : tabIds) {
             android.widget.TextView tab = findViewById(id);
@@ -1588,14 +1588,36 @@ public class MainActivity extends AppCompatActivity {
                     // क्लिक किए गए टैब को हरा (एक्टिव) करें
                     tab.setBackgroundColor(android.graphics.Color.parseColor("#00E676"));
                     tab.setTextColor(android.graphics.Color.parseColor("#FFFFFF"));
-                    
+
+                    // सभी टैब कंटेनर्स को छुपाएं
+                    if (tabHome != null) tabHome.setVisibility(View.GONE);
+                    if (tabModes != null) tabModes.setVisibility(View.GONE);
+                    if (tabLanguages != null) tabLanguages.setVisibility(View.GONE);
+                    if (tabVoices != null) tabVoices.setVisibility(View.GONE);
+                    if (tabAdvanced != null) tabAdvanced.setVisibility(View.GONE);
+                    if (tabMore != null) tabMore.setVisibility(View.GONE);
+
+                    // क्लिक किए गए टैब के हिसाब से संबंधित व्यू को दिखाएं
+                    if (id == R.id.tabHome) {
+                        if (tabHome != null) tabHome.setVisibility(View.VISIBLE);
+                    } else if (id == R.id.tabModes) {
+                        if (tabModes != null) tabModes.setVisibility(View.VISIBLE);
+                    } else if (id == R.id.tabLanguages) {
+                        if (tabLanguages != null) tabLanguages.setVisibility(View.VISIBLE);
+                    } else if (id == R.id.tabVoices) {
+                        if (tabVoices != null) tabVoices.setVisibility(View.VISIBLE);
+                    } else if (id == R.id.tabAdvanced) {
+                        if (tabAdvanced != null) tabAdvanced.setVisibility(View.VISIBLE);
+                    } else if (id == R.id.tabMore) {
+                        if (tabMore != null) tabMore.setVisibility(View.GONE); // More tab uses native settings or separate layout
+                    }
+
                     android.widget.Toast.makeText(this, tab.getText() + " Tab Selected", android.widget.Toast.LENGTH_SHORT).show();
-                    
-                    // भविष्य में: यहाँ हम Views (Screens) स्विच करने का कोड डालेंगे
                 });
             }
         }
     }
+
 
 
     private void setupSmartAnnouncerUI() {
