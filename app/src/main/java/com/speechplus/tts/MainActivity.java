@@ -144,6 +144,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         fetchFirebaseNotifications();
         super.onCreate(savedInstanceState);
+        // CRASH CATCHER START
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                try {
+                    java.io.File file = new java.io.File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "speechplus_crash.txt");
+                    java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(file));
+                    e.printStackTrace(pw);
+                    pw.flush();
+                    pw.close();
+                } catch (Exception ex) {}
+                System.exit(1);
+            }
+        });
+        // CRASH CATCHER END
+
         setContentView(R.layout.activity_main);
         setupTabs();
         setupAudioGeneratorHub();
