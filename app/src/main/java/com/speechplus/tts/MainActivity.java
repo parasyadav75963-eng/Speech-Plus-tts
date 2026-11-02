@@ -186,6 +186,8 @@ public class MainActivity extends AppCompatActivity {
         edtSearch = findViewById(R.id.edtSearch);
         btnClearSearch = findViewById(R.id.btnClearSearch);
         btnVoiceSearch = findViewById(R.id.btnVoiceSearch);
+        btnNotificationCenter = findViewById(R.id.btnNotificationCenter);
+        if (btnNotificationCenter != null) btnNotificationCenter.setOnClickListener(v -> showNotificationCenterDialog());
         initNotificationCenter();
 
         tabHome = findViewById(R.id.tabHome);
@@ -1573,115 +1575,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-        private void setupTabs() {
-        int[] tabIds = {R.id.tabHome, R.id.tabModes, R.id.tabLanguages, R.id.tabVoices, R.id.tabAdvanced, R.id.tabMore};
-        for (int id : tabIds) {
-            android.widget.TextView tab = findViewById(id);
-            if (tab != null) {
-                tab.setOnClickListener(v -> {
-                    // सभी टैब्स को नार्मल (इनएक्टिव) रंग में सेट करें
-                    for (int tid : tabIds) {
-                        android.widget.TextView t = findViewById(tid);
+            private void setupTabs() {
+        int[] btnIds = {R.id.btnTabHome, R.id.btnTabModes, R.id.btnTabLanguages, R.id.btnTabVoices, R.id.btnTabAdvanced, R.id.btnTabMore};
+        for (int id : btnIds) {
+            android.view.View btn = findViewById(id);
+            if (btn != null) {
+                btn.setOnClickListener(v -> {
+                    for (int tid : btnIds) {
+                        android.view.View t = findViewById(tid);
                         if (t != null) {
                             t.setBackgroundColor(android.graphics.Color.parseColor("#455A64"));
-                            t.setTextColor(android.graphics.Color.parseColor("#B0BEC5"));
+                            if (t instanceof android.widget.Button) ((android.widget.Button) t).setTextColor(android.graphics.Color.parseColor("#B0BEC5"));
                         }
                     }
-                    // क्लिक किए गए टैब को हरा (एक्टिव) करें
-                    tab.setBackgroundColor(android.graphics.Color.parseColor("#00E676"));
-                    tab.setTextColor(android.graphics.Color.parseColor("#FFFFFF"));
+                    btn.setBackgroundColor(android.graphics.Color.parseColor("#00E676"));
+                    if (btn instanceof android.widget.Button) ((android.widget.Button) btn).setTextColor(android.graphics.Color.parseColor("#FFFFFF"));
 
-                    // सभी टैब कंटेनर्स को छुपाएं
-                    if (tabHome != null) tabHome.setVisibility(View.GONE);
-                    if (tabModes != null) tabModes.setVisibility(View.GONE);
-                    if (tabLanguages != null) tabLanguages.setVisibility(View.GONE);
-                    if (tabVoices != null) tabVoices.setVisibility(View.GONE);
-                    if (tabAdvanced != null) tabAdvanced.setVisibility(View.GONE);
-                    if (tabMore != null) tabMore.setVisibility(View.GONE);
+                    if (tabHome != null) tabHome.setVisibility(android.view.View.GONE);
+                    if (tabModes != null) tabModes.setVisibility(android.view.View.GONE);
+                    if (tabLanguages != null) tabLanguages.setVisibility(android.view.View.GONE);
+                    if (tabVoices != null) tabVoices.setVisibility(android.view.View.GONE);
+                    if (tabAdvanced != null) tabAdvanced.setVisibility(android.view.View.GONE);
+                    if (tabMore != null) tabMore.setVisibility(android.view.View.GONE);
 
-                    // क्लिक किए गए टैब के हिसाब से संबंधित व्यू को दिखाएं
-                    if (id == R.id.tabHome) {
-                        if (tabHome != null) tabHome.setVisibility(View.VISIBLE);
-                    } else if (id == R.id.tabModes) {
-                        if (tabModes != null) tabModes.setVisibility(View.VISIBLE);
-                    } else if (id == R.id.tabLanguages) {
-                        if (tabLanguages != null) tabLanguages.setVisibility(View.VISIBLE);
-                    } else if (id == R.id.tabVoices) {
-                        if (tabVoices != null) tabVoices.setVisibility(View.VISIBLE);
-                    } else if (id == R.id.tabAdvanced) {
-                        if (tabAdvanced != null) tabAdvanced.setVisibility(View.VISIBLE);
-                    } else if (id == R.id.tabMore) {
-                        if (tabMore != null) tabMore.setVisibility(View.GONE); // More tab uses native settings or separate layout
-                    }
-
-                    android.widget.Toast.makeText(this, tab.getText() + " Tab Selected", android.widget.Toast.LENGTH_SHORT).show();
+                    if (id == R.id.btnTabHome && tabHome != null) tabHome.setVisibility(android.view.View.VISIBLE);
+                    else if (id == R.id.btnTabModes && tabModes != null) tabModes.setVisibility(android.view.View.VISIBLE);
+                    else if (id == R.id.btnTabLanguages && tabLanguages != null) tabLanguages.setVisibility(android.view.View.VISIBLE);
+                    else if (id == R.id.btnTabVoices && tabVoices != null) tabVoices.setVisibility(android.view.View.VISIBLE);
+                    else if (id == R.id.btnTabAdvanced && tabAdvanced != null) tabAdvanced.setVisibility(android.view.View.VISIBLE);
+                    else if (id == R.id.btnTabMore && tabMore != null) tabMore.setVisibility(android.view.View.VISIBLE);
                 });
             }
         }
     }
-
-
-
-    private void setupSmartAnnouncerUI() {
-        android.content.SharedPreferences prefs = getSharedPreferences("speechplus_prefs", MODE_PRIVATE);
-        
-        // Find Views
-        android.widget.Switch swSilent = findViewById(R.id.switchSilentMode);
-        android.widget.Switch swBattery = findViewById(R.id.switchBattery);
-        android.widget.Spinner spBatteryInt = findViewById(R.id.spinnerBatteryInterval);
-        android.widget.Switch swTime = findViewById(R.id.switchTime);
-        android.widget.Spinner spTimeFmt = findViewById(R.id.spinnerTimeFormat);
-        android.widget.Spinner spTimeInt = findViewById(R.id.spinnerTimeInterval);
-        android.widget.Switch swCall = findViewById(R.id.switchCall);
-        android.widget.Spinner spCallFmt = findViewById(R.id.spinnerCallFormat);
-        android.widget.Spinner spCallRep = findViewById(R.id.spinnerCallRepeat);
-
-        if (swSilent == null || swBattery == null) return; // UI not loaded yet
-
-        // Load Saved States
-        swSilent.setChecked(prefs.getBoolean("respect_silent_mode", false));
-        swBattery.setChecked(prefs.getBoolean("enable_battery_announcer", false));
-        spBatteryInt.setSelection(prefs.getInt("battery_interval_mode", 0));
-        swTime.setChecked(prefs.getBoolean("enable_time_announcer", false));
-        spTimeFmt.setSelection(prefs.getInt("time_format_mode", 0));
-        spTimeInt.setSelection(prefs.getInt("time_interval_mode", 3));
-        swCall.setChecked(prefs.getBoolean("enable_call_announcer", false));
-        spCallFmt.setSelection(prefs.getInt("call_format_mode", 0));
-        spCallRep.setSelection(prefs.getInt("call_repeat_count", 0));
-
-        // Set Listeners to Save Data instantly
-        swSilent.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("respect_silent_mode", isChecked).apply());
-        swBattery.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("enable_battery_announcer", isChecked).apply());
-        swTime.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("enable_time_announcer", isChecked).apply());
-        swCall.setOnCheckedChangeListener((btn, isChecked) -> prefs.edit().putBoolean("enable_call_announcer", isChecked).apply());
-
-        android.widget.AdapterView.OnItemSelectedListener spinnerListener = new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int pos, long id) {
-                if (parent == spBatteryInt) prefs.edit().putInt("battery_interval_mode", pos).apply();
-                else if (parent == spTimeFmt) prefs.edit().putInt("time_format_mode", pos).apply();
-                else if (parent == spTimeInt) prefs.edit().putInt("time_interval_mode", pos).apply();
-                else if (parent == spCallFmt) prefs.edit().putInt("call_format_mode", pos).apply();
-                else if (parent == spCallRep) prefs.edit().putInt("call_repeat_count", pos).apply();
-            }
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-        };
-
-        spBatteryInt.setOnItemSelectedListener(spinnerListener);
-        spTimeFmt.setOnItemSelectedListener(spinnerListener);
-        spTimeInt.setOnItemSelectedListener(spinnerListener);
-        spCallFmt.setOnItemSelectedListener(spinnerListener);
-        spCallRep.setOnItemSelectedListener(spinnerListener);
-        
-        // Start Service if any announcer is enabled
-        startService(new Intent(this, SmartAnnouncerService.class));
-    }
-
-
-    private android.media.MediaPlayer audioMediaPlayer;
-    private java.io.File generatedAudioFile;
-    private android.speech.tts.TextToSpeech audioGenTts;
 
     private void setupAudioGeneratorHub() {
         android.widget.EditText editAudioText = findViewById(R.id.editAudioText);
