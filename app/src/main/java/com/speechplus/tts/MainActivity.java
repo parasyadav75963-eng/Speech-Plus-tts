@@ -1609,7 +1609,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupAudioGeneratorHub() {
+        private android.media.MediaPlayer audioMediaPlayer;
+    private java.io.File generatedAudioFile;
+    private android.speech.tts.TextToSpeech audioGenTts;
+
+    private void setupAudioGeneratorHub()
+ {
         android.widget.EditText editAudioText = findViewById(R.id.editAudioText);
         android.widget.Button btnGenerateAudio = findViewById(R.id.btnGenerateAudio);
         android.widget.LinearLayout layoutAudioStatus = findViewById(R.id.layoutAudioStatus);

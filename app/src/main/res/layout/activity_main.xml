@@ -24,8 +24,23 @@
         <!-- 1. HOME TAB -->
         <ScrollView android:id="@+id/tabHome" android:layout_width="match_parent" android:layout_height="match_parent">
             <LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp">
+                                <TextView android:text="Text-to-Audio Generator" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold"/>
                 <EditText android:id="@+id/editAudioText" android:layout_width="match_parent" android:layout_height="100dp" android:hint="Type text..." android:textColor="#FFFFFF"/>
                 <Button android:id="@+id/btnGenerateAudio" android:text="Generate Audio" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+                <LinearLayout android:id="@+id/layoutAudioStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
+                    <ProgressBar android:id="@+id/progressAudioGen" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:id="@+id/tvAudioStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#FFFFFF"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/layoutMediaControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
+                    <Button android:id="@+id/btnRewind" android:text="<<" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnPlayPauseAudio" android:text="Play" android:layout_width="0dp" android:layout_weight="2" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnFastForward" android:text=">>" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/layoutExportControls" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
+                    <Button android:id="@+id/btnShareAudio" android:text="Share" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                    <Button android:id="@+id/btnSaveAudio" android:text="Save" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+                </LinearLayout>
+
                 <Switch android:id="@+id/switchSilentMode" android:text="Respect Silent Mode" android:textColor="#FFFFFF" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp"/>
                 
                 <TextView android:text="--- Battery Announcer ---" android:textColor="#00E676" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"/>
