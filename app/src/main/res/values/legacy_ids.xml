@@ -41,4 +41,5 @@
     <item name="spinnerVoiceEngine" type="id" />
     <item name="spinnerVoiceLanguage" type="id" />
     <item name="spinnerVoiceVariant" type="id" />
+    <item name="btnCheckUpdateMore" type="id" />
 </resources>
