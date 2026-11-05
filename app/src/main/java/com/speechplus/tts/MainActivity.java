@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
         setupButtonClick("btnSettingsTimerBattery", v -> startActivity(new Intent(MainActivity.this, SettingsTimerBatteryActivity.class)));
         setupButtonClick("btnSettingsDisplay", v -> startActivity(new Intent(MainActivity.this, SettingsDisplayActivity.class)));
         setupButtonClick("btnSettingsSmartReader", v -> startActivity(new Intent(MainActivity.this, SettingsSmartReaderActivity.class)));
-        setupButtonClick("btnSettingsSound", v -> Toast.makeText(this, "Sound \setupButtonClick("btnPreviewCall" Vibration Settings coming soon...", Toast.LENGTH_SHORT).show());
+        setupButtonClick("btnSettingsSound", v -> startActivity(new Intent(MainActivity.this, SettingsSoundActivity.class)));
 
         setupButtonClick("btnPreviewCall", v -> {
             speakText("Incoming call from Paras Yadav");
