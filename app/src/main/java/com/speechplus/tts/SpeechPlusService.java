@@ -42,7 +42,7 @@ public class SpeechPlusService extends TextToSpeechService {
             @Override
             public void onError(String utteranceId) { releaseLatch(); }
             
-            @Override
+            // Fix: Removed @Override here so older APIs don't crash the build
             public void onStop(String utteranceId, boolean interrupted) { releaseLatch(); }
         });
     }
@@ -52,6 +52,7 @@ public class SpeechPlusService extends TextToSpeechService {
             currentLatch.countDown();
         }
     }
+
     @Override
     protected void onSynthesis(SynthesisRequest request, SynthesisCallback callback) {
         if (!isReady || internalTts == null) {
@@ -72,19 +73,12 @@ public class SpeechPlusService extends TextToSpeechService {
             internalTts.setSpeechRate(prefs.getInt("voice_rate", 100) / 100.0f);
         }
 
-        // Fast callback start for 0ms latency perception by TalkBack
         callback.start(16000, AudioFormat.ENCODING_PCM_16BIT, 1);
-
-        // Create a new latch for this utterance to prevent overlapping
         currentLatch = new CountDownLatch(1);
         String utteranceId = "utter_msg_" + System.currentTimeMillis();
-
-        // QUEUE_FLUSH ensures instant cut of previous speech when swiping
         internalTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId);
 
         try {
-            // Wait for the internal TTS to finish or be interrupted
-            // This stops TalkBack from sending overlapping text blocks incorrectly
             currentLatch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -96,9 +90,9 @@ public class SpeechPlusService extends TextToSpeechService {
     @Override
     protected void onStop() {
         if (internalTts != null) {
-            internalTts.stop(); // Instantly stops TTS when TalkBack sends a stop signal (swipe)
+            internalTts.stop();
         }
-        releaseLatch(); // Instantly release the thread for the next swipe
+        releaseLatch();
     }
 
     @Override
