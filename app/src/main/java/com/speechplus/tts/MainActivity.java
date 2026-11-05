@@ -13,6 +13,7 @@ import java.util.Calendar;
 
 public class MainActivity extends Activity {
     private SharedPreferences prefs;
+    private android.speech.tts.TextToSpeech testTts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +22,7 @@ public class MainActivity extends Activity {
         
         prefs = getSharedPreferences("SpeechPlusPrefs", MODE_PRIVATE);
 
-        // Start our 100% working Smart Announcer Service in the background
+        // Start our Smart Announcer Service in the background
         startService(new Intent(this, SmartAnnouncerService.class));
 
         setupTalkBackTabDescriptions();
@@ -29,44 +30,37 @@ public class MainActivity extends Activity {
     }
 
     private void setupTalkBackTabDescriptions() {
-        // Find Tab Buttons/Views by standard IDs and set their English Descriptions for TalkBack
-        View tabHome = findViewById(R.id.tabHome);
-        if (tabHome != null) tabHome.setContentDescription(getString(R.string.desc_tab_home));
+        setTabDesc("tabHome", R.string.desc_tab_home);
+        setTabDesc("tabModes", R.string.desc_tab_modes);
+        setTabDesc("tabLanguages", R.string.desc_tab_languages);
+        setTabDesc("tabVoices", R.string.desc_tab_voices);
+        setTabDesc("tabAdvanced", R.string.desc_tab_advanced);
+        setTabDesc("tabMore", R.string.desc_tab_more);
+    }
 
-        View tabModes = findViewById(R.id.tabModes);
-        if (tabModes != null) tabModes.setContentDescription(getString(R.string.desc_tab_modes));
-
-        View tabLanguages = findViewById(R.id.tabLanguages);
-        if (tabLanguages != null) tabLanguages.setContentDescription(getString(R.string.desc_tab_languages));
-        View tabVoices = findViewById(R.id.tabVoices);
-        if (tabVoices != null) tabVoices.setContentDescription(getString(R.string.desc_tab_voices));
-
-        View tabAdvanced = findViewById(R.id.tabAdvanced);
-        if (tabAdvanced != null) tabAdvanced.setContentDescription(getString(R.string.desc_tab_advanced));
-
-        View tabMore = findViewById(R.id.tabMore);
-        if (tabMore != null) tabMore.setContentDescription(getString(R.string.desc_tab_more));
+    private void setTabDesc(String idName, int stringRes) {
+        int resId = getResources().getIdentifier(idName, "id", getPackageName());
+        if (resId != 0) {
+            View v = findViewById(resId);
+            if (v != null) v.setContentDescription(getString(stringRes));
+        }
     }
 
     private void setupTestButtons() {
-        Button btnTestTime = findViewById(R.id.btnTestTime);
-        if (btnTestTime != null) {
-            btnTestTime.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    testCurrentTime();
-                }
-            });
+        int idTime = getResources().getIdentifier("btnTestTime", "id", getPackageName());
+        if (idTime != 0) {
+            Button btnTestTime = findViewById(idTime);
+            if (btnTestTime != null) {
+                btnTestTime.setOnClickListener(v -> testCurrentTime());
+            }
         }
 
-        Button btnTestBattery = findViewById(R.id.btnTestBattery);
-        if (btnTestBattery != null) {
-            btnTestBattery.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    testCurrentBattery();
-                }
-            });
+        int idBattery = getResources().getIdentifier("btnTestBattery", "id", getPackageName());
+        if (idBattery != 0) {
+            Button btnTestBattery = findViewById(idBattery);
+            if (btnTestBattery != null) {
+                btnTestBattery.setOnClickListener(v -> testCurrentBattery());
+            }
         }
     }
 
@@ -89,8 +83,6 @@ public class MainActivity extends Activity {
         Toast.makeText(this, batteryText, Toast.LENGTH_SHORT).show();
         speakTestText(batteryText);
     }
-
-    private android.speech.tts.TextToSpeech testTts;
 
     private void speakTestText(String text) {
         if (testTts == null) {
