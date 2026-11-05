@@ -17,6 +17,7 @@ public class SpeechPlusService extends TextToSpeechService {
     private SharedPreferences prefs;
     private CountDownLatch currentLatch;
 
+    @Override
     public void onCreate() {
         super.onCreate();
         prefs = getSharedPreferences("SpeechPlusPrefs", Context.MODE_PRIVATE);
@@ -30,9 +31,16 @@ public class SpeechPlusService extends TextToSpeechService {
 
     private void setupUtteranceListener() {
         internalTts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
             public void onStart(String utteranceId) {}
+            
+            @Override
             public void onDone(String utteranceId) { releaseLatch(); }
+            
+            @Override
             public void onError(String utteranceId) { releaseLatch(); }
+            
+            // Fix: No @Override here to prevent API 29 compile crash
             public void onStop(String utteranceId, boolean interrupted) { releaseLatch(); }
         });
     }
@@ -43,7 +51,9 @@ public class SpeechPlusService extends TextToSpeechService {
         }
     }
 
-    protected void onSynthesis(SynthesisRequest request, SynthesisCallback callback) {
+    // Fix: Corrected method name from onSynthesis to onSynthesizeText
+    @Override
+    protected void onSynthesizeText(SynthesisRequest request, SynthesisCallback callback) {
         if (!isReady || internalTts == null) {
             callback.error();
             return;
@@ -73,6 +83,7 @@ public class SpeechPlusService extends TextToSpeechService {
         callback.done();
     }
 
+    @Override
     protected void onStop() {
         if (internalTts != null) {
             internalTts.stop();
@@ -80,10 +91,12 @@ public class SpeechPlusService extends TextToSpeechService {
         releaseLatch();
     }
 
+    @Override
     protected String[] onGetLanguage() {
         return new String[]{"eng", "USA", ""};
     }
 
+    @Override
     protected int onIsLanguageAvailable(String lang, String country, String variant) {
         if (internalTts != null) {
             return internalTts.isLanguageAvailable(new Locale(lang, country, variant));
@@ -91,6 +104,7 @@ public class SpeechPlusService extends TextToSpeechService {
         return TextToSpeech.LANG_AVAILABLE;
     }
 
+    @Override
     protected int onLoadLanguage(String lang, String country, String variant) {
         if (internalTts != null) {
             return internalTts.setLanguage(new Locale(lang, country, variant));
@@ -98,6 +112,7 @@ public class SpeechPlusService extends TextToSpeechService {
         return TextToSpeech.LANG_AVAILABLE;
     }
 
+    @Override
     public void onDestroy() {
         if (internalTts != null) {
             internalTts.stop();
