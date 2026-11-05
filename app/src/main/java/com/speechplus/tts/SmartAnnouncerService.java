@@ -6,170 +6,166 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.IBinder;
-import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class SmartAnnouncerService extends Service implements TextToSpeech.OnInitListener {
     private TextToSpeech tts;
+    private AudioManager audioManager;
     private SharedPreferences prefs;
     private boolean isTtsReady = false;
+    private BroadcastReceiver batteryReceiver;
+    private BroadcastReceiver timeReceiver;
+    private TelephonyManager telephonyManager;
+    private PhoneStateListener phoneStateListener;
     private int lastBatteryLevel = -1;
-    private long lastTimeAnnounced = 0;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        prefs = getSharedPreferences("speechplus_prefs", MODE_PRIVATE);
+        prefs = getSharedPreferences("SpeechPlusPrefs", MODE_PRIVATE);
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         tts = new TextToSpeech(this, this);
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        filter.addAction(Intent.ACTION_POWER_CONNECTED);
-        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        filter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED);
-        filter.addAction(Intent.ACTION_TIME_TICK);
-        registerReceiver(smartReceiver, filter);
+        registerReceivers();
+        setupCallListener();
     }
 
     @Override
     public void onInit(int status) {
         if (status == TextToSpeech.SUCCESS) {
+            tts.setLanguage(Locale.US);
             isTtsReady = true;
-            tts.setSpeechRate(1.0f);
-            tts.setPitch(1.0f);
         }
     }
 
-    private boolean isSilentMode() {
-        if (!prefs.getBoolean("respect_silent_mode", false)) return false;
-        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        return am != null && am.getRingerMode() != AudioManager.RINGER_MODE_NORMAL;
+    private boolean shouldSpeak() {
+        boolean respectSilent = prefs.getBoolean("silent_mode", false);
+        if (!respectSilent) return true;
+        return audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL;
     }
 
-    private final BroadcastReceiver smartReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (!isTtsReady) return;
-            String action = intent.getAction();
-
-            // 1. CALL ANNOUNCER
-            if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action) && prefs.getBoolean("enable_call_announcer", false)) {
-                String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-                if (TelephonyManager.EXTRA_STATE_RINGING.equals(state)) {
-                    announceCall(context, intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER));
-                } else if (TelephonyManager.EXTRA_STATE_IDLE.equals(state)) {
-                    tts.stop();
-                }
-            }
-
-            // 2. BATTERY ANNOUNCER (Respects Silent Mode)
-            if (prefs.getBoolean("enable_battery_announcer", false) && !isSilentMode()) {
-                if (Intent.ACTION_POWER_CONNECTED.equals(action)) {
-                    speak("Charger connected. Battery is at " + getBatteryLevel(context) + " percent.");
-                } else if (Intent.ACTION_POWER_DISCONNECTED.equals(action)) {
-                    speak("Charger disconnected.");
-                } else if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
-                    int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
-                    if (level != lastBatteryLevel) {
-                        int intervalMode = prefs.getInt("battery_interval_mode", 0); // 0=10%, 1=15m, 2=30m, 3=1h
-                        boolean shouldAnnounce = false;
-                        if (intervalMode == 0 && (level % 10 == 0 || level == 100 || level <= 15)) {
-                            shouldAnnounce = true;
-                        }
-                        if (shouldAnnounce) {
-                            speak("Battery alert: Battery is at " + level + " percent.");
-                            lastBatteryLevel = level;
-                        }
-                    }
-                }
-            }
-
-            // 3. TIME ANNOUNCER (Respects Silent Mode)
-            if (Intent.ACTION_TIME_TICK.equals(action) && prefs.getBoolean("enable_time_announcer", false) && !isSilentMode()) {
-                Calendar cal = Calendar.getInstance();
-                int min = cal.get(Calendar.MINUTE);
-                int intervalMode = prefs.getInt("time_interval_mode", 3); // 0=15m, 1=30m, 2=45m, 3=1h
-                
-                boolean shouldAnnounce = false;
-                if (intervalMode == 0 && min % 15 == 0) shouldAnnounce = true;
-                else if (intervalMode == 1 && min % 30 == 0) shouldAnnounce = true;
-                else if (intervalMode == 2 && min % 45 == 0) shouldAnnounce = true;
-                else if (intervalMode == 3 && min == 0) shouldAnnounce = true;
-
-                if (shouldAnnounce) {
-                    long now = System.currentTimeMillis();
-                    if (now - lastTimeAnnounced > 60000) { // Prevent double announce in same minute
-                        announceTime(cal);
-                        lastTimeAnnounced = now;
-                    }
-                }
-            }
-        }
-    };
-
-    private int getBatteryLevel(Context context) {
-        Intent intent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        return intent != null ? intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) : 0;
-    }
-
-    private void announceCall(Context context, String number) {
-        if (number == null || number.isEmpty()) return;
-        String callerName = getContactName(context, number);
-        int formatMode = prefs.getInt("call_format_mode", 0);
-        String announcement = "Incoming call.";
-        if (formatMode == 0 && callerName != null) announcement = "Incoming call from " + callerName;
-        else if (formatMode == 1) announcement = "Incoming call from " + number.replaceAll(".(?=.)", "$0 ");
-        else if (formatMode == 2) announcement = "Incoming call from " + (callerName != null ? callerName : "Unknown") + ", number " + number.replaceAll(".(?=.)", "$0 ");
-
-        int repeatCount = prefs.getInt("call_repeat_count", 0) + 1; // 0 index = 1 time
-        for (int i = 0; i < repeatCount; i++) speak(announcement);
-    }
-
-    private String getContactName(Context context, String phoneNumber) {
+    private void playAudioFile(int resId) {
+        if (!shouldSpeak()) return;
         try {
-            Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
-            Cursor cursor = context.getContentResolver().query(uri, new String[]{ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    String name = cursor.getString(0);
-                    cursor.close();
-                    return name;
-                }
-                cursor.close();
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, resId);
+            if (mediaPlayer != null) {
+                mediaPlayer.setOnCompletionListener(mp -> mp.release());
+                mediaPlayer.start();
             }
-        } catch (Exception e) {}
-        return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private void announceTime(Calendar cal) {
-        int hour = cal.get(Calendar.HOUR);
-        if (hour == 0) hour = 12;
-        int min = cal.get(Calendar.MINUTE);
-        String ampm = cal.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
-        int timeFormat = prefs.getInt("time_format_mode", 0);
-        String timeStr = (timeFormat == 0) ? "The time is exactly " + hour + " " + (min > 0 ? min : "o'clock") + " " + ampm : "It is " + hour + " " + (min > 0 ? min : "") + " " + ampm;
-        speak(timeStr);
+    private void playChimeAndSpeak(String text) {
+        if (!isTtsReady || !shouldSpeak()) return;
+        try {
+            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            MediaPlayer mp = MediaPlayer.create(this, soundUri);
+            if (mp != null) {
+                mp.setOnCompletionListener(mediaPlayer -> {
+                    mediaPlayer.release();
+                    tts.speak(text, TextToSpeech.QUEUE_ADD, null, null);
+                });
+                mp.start();
+            } else {
+                tts.speak(text, TextToSpeech.QUEUE_ADD, null, null);
+            }
+        } catch (Exception e) {
+            tts.speak(text, TextToSpeech.QUEUE_ADD, null, null);
+        }
     }
 
-    private void speak(String text) {
-        if (isTtsReady && tts != null) tts.speak(text, TextToSpeech.QUEUE_ADD, null, "SmartAnnouncer");
+    private void registerReceivers() {
+        batteryReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                if (Intent.ACTION_POWER_CONNECTED.equals(action) && prefs.getBoolean("announce_charger", false)) {
+                    playAudioFile(R.raw.charger_plugged);
+                } else if (Intent.ACTION_POWER_DISCONNECTED.equals(action) && prefs.getBoolean("announce_charger", false)) {
+                    playAudioFile(R.raw.charger_unplugged);
+                } else if (Intent.ACTION_BATTERY_CHANGED.equals(action) && prefs.getBoolean("announce_battery", false)) {
+                    int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                    if (level == 20 && lastBatteryLevel != 20 && prefs.getBoolean("announce_battery_alerts", false)) {
+                        playAudioFile(R.raw.battery_low);
+                    }
+                    lastBatteryLevel = level;
+                }
+            }
+        };
+        IntentFilter batteryFilter = new IntentFilter();
+        batteryFilter.addAction(Intent.ACTION_POWER_CONNECTED);
+        batteryFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        batteryFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryReceiver, batteryFilter);
+        timeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (Intent.ACTION_TIME_TICK.equals(intent.getAction()) && prefs.getBoolean("announce_time", false)) {
+                    Calendar c = Calendar.getInstance();
+                    int minute = c.get(Calendar.MINUTE);
+                    int interval = Integer.parseInt(prefs.getString("time_interval", "60"));
+                    if (minute % interval == 0) {
+                        int hour = c.get(Calendar.HOUR);
+                        if (hour == 0) hour = 12;
+                        String amPm = c.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
+                        String timeText = "The time is " + hour + " " + (minute == 0 ? "o'clock" : minute) + " " + amPm;
+                        // टाइम के लिए प्यारा साउंड बजेगा
+                        playChimeAndSpeak(timeText);
+                    }
+                }
+            }
+        };
+        IntentFilter timeFilter = new IntentFilter(Intent.ACTION_TIME_TICK);
+        registerReceiver(timeReceiver, timeFilter);
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) { return START_STICKY; }
-    @Override
-    public IBinder onBind(Intent intent) { return null; }
+    private void setupCallListener() {
+        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                if (state == TelephonyManager.CALL_STATE_RINGING && prefs.getBoolean("announce_call", false)) {
+                    String caller = (incomingNumber != null && !incomingNumber.isEmpty()) ? incomingNumber : "Unknown number";
+                    int formatIdx = prefs.getInt("call_format", 1);
+                    String textToSpeak = formatIdx == 1 ? "Incoming call from " + caller : caller;
+                    
+                    // रिंगटोन के साथ कोई एक्स्ट्रा साउंड नहीं, सीधा TTS बोलेगा
+                    if (isTtsReady && shouldSpeak()) {
+                        tts.speak(textToSpeak, TextToSpeech.QUEUE_ADD, null, null);
+                    }
+                }
+            }
+        };
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+    }
+
     @Override
     public void onDestroy() {
-        if (tts != null) { tts.stop(); tts.shutdown(); }
-        unregisterReceiver(smartReceiver);
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        if (batteryReceiver != null) unregisterReceiver(batteryReceiver);
+        if (timeReceiver != null) unregisterReceiver(timeReceiver);
+        if (telephonyManager != null && phoneStateListener != null) {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+        }
         super.onDestroy();
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 }

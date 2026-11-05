@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="time_intervals">
+        <item>10 Minutes</item>
+        <item>20 Minutes</item>
+        <item>25 Minutes</item>
+        <item>35 Minutes</item>
+        <item>45 Minutes</item>
+        <item>1 Hour</item>
+    </string-array>
+    <string-array name="time_intervals_values">
+        <item>10</item>
+        <item>20</item>
+        <item>25</item>
+        <item>35</item>
+        <item>45</item>
+        <item>60</item>
+    </string-array>
+    <string-array name="call_formats">
+        <item>Name only</item>
+        <item>Incoming call from [Name]</item>
+    </string-array>
+    <string-array name="call_repeats">
+        <item>Once</item>
+        <item>Twice</item>
+        <item>Continuously</item>
+    </string-array>
+</resources>

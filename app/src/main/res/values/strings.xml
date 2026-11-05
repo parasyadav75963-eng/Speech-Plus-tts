@@ -1,35 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Speech Plus TTS Engine</string>
-
-    <string-array name="time_format_options">
-        <item>Full Format (The time is exactly...)</item>
-        <item>Short Format (It is...)</item>
-    </string-array>
+    <string name="app_name">Speech Plus TTS</string>
     
-    <string-array name="time_interval_options">
-        <item>Every 15 Minutes</item>
-        <item>Every 30 Minutes</item>
-        <item>Every 45 Minutes</item>
-        <item>Every 1 Hour</item>
-    </string-array>
-
-    <string-array name="battery_interval_options">
-        <item>Every 10 Percent Drop/Gain</item>
-        <item>Every 15 Minutes</item>
-        <item>Every 30 Minutes</item>
-        <item>Every 1 Hour</item>
-    </string-array>
+    <!-- Tabs Short Information -->
+    <string name="desc_tab_home">Home Tab. Manage your text to audio generator and smart announcer settings here.</string>
+    <string name="desc_tab_modes">Modes Tab. Select your preferred TTS engine mode, including zero latency fast mode.</string>
+    <string name="desc_tab_languages">Languages Tab. Select and manage your preferred TTS languages.</string>
+    <string name="desc_tab_voices">Voices Tab. Customize speech rate, pitch, volume and test voice variants.</string>
+    <string name="desc_tab_advanced">Advanced Tab. Configure advanced settings, number formatting and battery optimizations.</string>
+    <string name="desc_tab_more">More Tab. View app information, access system TTS settings, and contact the developer.</string>
     
-    <string-array name="call_format_options">
-        <item>Caller Name Only</item>
-        <item>Phone Number Only</item>
-        <item>Name and Number Both</item>
-    </string-array>
-
-    <string-array name="call_repeat_options">
-        <item>Repeat 1 Time</item>
-        <item>Repeat 2 Times</item>
-        <item>Repeat 3 Times</item>
-    </string-array>
-
+    <!-- Smart Announcer Strings -->
+    <string name="battery_low_warning">Your battery power is empty, please charge it.</string>
+    <string name="charger_plugged_in">Charger plugged in.</string>
+    <string name="charger_unplugged">Charger unplugged.</string>
 </resources>
