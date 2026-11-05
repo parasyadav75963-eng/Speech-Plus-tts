@@ -75,6 +75,11 @@
             android:enabled="true"
             android:exported="false" />
 
+        <activity android:name=".SmartReaderActivity" android:exported="false"/>
+        <activity android:name=".SettingsSoundActivity" android:exported="false"/>
+        <activity android:name=".SettingsDisplayActivity" android:exported="false"/>
+        <activity android:name=".SettingsSmartReaderActivity" android:exported="false"/>
+        <activity android:name=".SettingsTimerBatteryActivity" android:exported="false"/>
     </application>
 
 </manifest>

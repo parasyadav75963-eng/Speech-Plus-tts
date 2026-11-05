@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <!-- Top Bar -->
+    <LinearLayout 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:orientation="horizontal" 
+        android:gravity="center_vertical">
+        
+        <Button android:id="@+id/btnBack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Back" android:contentDescription="Go Back to Settings Hub"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Smart Reader Setup" android:textSize="20sp" android:textColor="#FFFFFF" android:gravity="center" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Reader Behavior Settings -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Reader Behavior" android:textColor="#03DAC5" android:layout_marginTop="32dp" android:textStyle="bold" android:textSize="16sp"/>
+
+    <Switch android:id="@+id/switchBackgroundReading" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Allow Background Reading (When App is Minimized)" android:textColor="#FFFFFF" android:layout_marginTop="16dp" android:checked="true"/>
+    
+    <Switch android:id="@+id/switchAutoStart" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Auto-Start Reading after Scan completes" android:textColor="#FFFFFF" android:layout_marginTop="24dp" android:checked="true"/>
+
+</LinearLayout>

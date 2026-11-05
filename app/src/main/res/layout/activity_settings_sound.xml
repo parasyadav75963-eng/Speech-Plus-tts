@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <!-- Top Bar -->
+    <LinearLayout 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:orientation="horizontal" 
+        android:gravity="center_vertical">
+        
+        <Button android:id="@+id/btnBack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Back" android:contentDescription="Go Back to Settings Hub"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Sound &amp; Vibration" android:textSize="20sp" android:textColor="#FFFFFF" android:gravity="center" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <!-- Smart Reader Sounds -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Smart Reader Sounds" android:textColor="#03DAC5" android:layout_marginTop="24dp" android:textStyle="bold" android:textSize="16sp"/>
+
+    <Switch android:id="@+id/switchPageTurn" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Page Turn Sound" android:textColor="#FFFFFF" android:layout_marginTop="16dp" android:checked="true"/>
+    
+    <Switch android:id="@+id/switchScanProgress" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Scanning Progress Sound (Tick-Tick)" android:textColor="#FFFFFF" android:layout_marginTop="16dp" android:checked="true"/>
+    
+    <Switch android:id="@+id/switchScanComplete" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Scan Complete Sound (Ding)" android:textColor="#FFFFFF" android:layout_marginTop="16dp" android:checked="true"/>
+
+    <!-- General Vibration Settings -->
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Vibration Settings" android:textColor="#03DAC5" android:layout_marginTop="32dp" android:textStyle="bold" android:textSize="16sp"/>
+    
+    <Switch android:id="@+id/switchHaptic" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Haptic Feedback on Buttons" android:textColor="#FFFFFF" android:layout_marginTop="16dp" android:checked="true"/>
+
+</LinearLayout>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <!-- Top Bar: Back Button & Bookmarks -->
+    <LinearLayout 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        
+        <Button android:id="@+id/btnBack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Back" android:contentDescription="Go Back to Main Screen"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Smart Reader" android:textSize="20sp" android:textColor="#FFFFFF" android:gravity="center" android:textStyle="bold"/>
+        <Button android:id="@+id/btnBookmarks" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bookmarks" android:contentDescription="Open Saved Bookmarks" />
+    </LinearLayout>
+
+    <!-- Reading Area / Status -->
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="16dp" android:layout_marginBottom="16dp">
+        <TextView android:id="@+id/tvReaderStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Select a PDF or Image to start reading..." android:textColor="#CCCCCC" android:textSize="18sp"/>
+    </ScrollView>
+
+    <Button android:id="@+id/btnSelectDoc" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SELECT DOCUMENT (PDF / IMAGE)" android:layout_marginBottom="16dp" android:backgroundTint="#6200EE" android:textColor="#FFFFFF"/>
+
+    <!-- NEW: Page Navigation Controls -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginBottom="8dp">
+        <Button android:id="@+id/btnPrevPage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Prev Page" android:contentDescription="Go to Previous Page" android:layout_marginEnd="16dp" android:backgroundTint="#03DAC5" android:textColor="#000000"/>
+        <TextView android:id="@+id/tvPageNumber" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Page: 1" android:textColor="#FFFFFF" android:textStyle="bold" android:layout_marginEnd="16dp"/>
+        <Button android:id="@+id/btnNextPage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Next Page" android:contentDescription="Go to Next Page" android:backgroundTint="#03DAC5" android:textColor="#000000"/>
+    </LinearLayout>
+
+    <!-- Playback Controls -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginBottom="16dp">
+        <Button android:id="@+id/btnRewind" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-10s" android:contentDescription="Rewind 10 seconds" android:layout_marginEnd="8dp"/>
+        <Button android:id="@+id/btnPlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Play" android:contentDescription="Play Document" android:layout_marginEnd="8dp"/>
+        <Button android:id="@+id/btnPause" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pause" android:contentDescription="Pause Document" android:layout_marginEnd="8dp"/>
+        <Button android:id="@+id/btnForward" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+10s" android:contentDescription="Fast forward 10 seconds" />
+    </LinearLayout>
+
+    <Button android:id="@+id/btnShare" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SHARE / EXPORT FORMAT" android:contentDescription="Share document as Text, Audio or PDF" android:backgroundTint="#455A64" android:textColor="#FFFFFF"/>
+
+</LinearLayout>

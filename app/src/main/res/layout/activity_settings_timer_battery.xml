@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <LinearLayout 
+        android:layout_width="match_parent" 
+        android:layout_height="wrap_content" 
+        android:orientation="horizontal" 
+        android:gravity="center_vertical">
+        <Button android:id="@+id/btnBack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Back" android:contentDescription="Go Back to Settings Hub"/>
+        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="Timer &amp; Battery" android:textSize="20sp" android:textColor="#FFFFFF" android:gravity="center" android:textStyle="bold"/>
+    </LinearLayout>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Sleep Timer" android:textColor="#03DAC5" android:layout_marginTop="32dp" android:textStyle="bold" android:textSize="16sp"/>
+    <Switch android:id="@+id/switchSleepTimer" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Enable Sleep Timer (Auto-stop reading after 30 mins)" android:textColor="#FFFFFF" android:layout_marginTop="16dp"/>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Battery Alerts" android:textColor="#03DAC5" android:layout_marginTop="24dp" android:textStyle="bold" android:textSize="16sp"/>
+    <Switch android:id="@+id/switchBatteryAlert" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Announce when Battery is below 20%" android:textColor="#FFFFFF" android:layout_marginTop="16dp" android:checked="true"/>
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Audio Routing" android:textColor="#03DAC5" android:layout_marginTop="24dp" android:textStyle="bold" android:textSize="16sp"/>
+    <Switch android:id="@+id/switchAudioRouting" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Force all TTS voices to Media Volume" android:textColor="#FFFFFF" android:layout_marginTop="16dp"/>
+
+</LinearLayout>
