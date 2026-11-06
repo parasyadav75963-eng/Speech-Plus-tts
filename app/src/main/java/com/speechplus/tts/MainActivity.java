@@ -24,6 +24,8 @@ public class MainActivity extends Activity {
         // Start our 100% working Smart Announcer Service in the background
         startService(new Intent(this, SmartAnnouncerService.class));
 
+        setupTabs();
+        setupAllSpinners();
         setupTalkBackTabDescriptions();
         setupTestButtons();
     }
@@ -130,4 +132,36 @@ public class MainActivity extends Activity {
         }
         super.onDestroy();
     }
+
+    private void setupTabs() {
+        final android.view.View layoutHome = findViewById(getResources().getIdentifier("layoutAudioStatus", "id", getPackageName()));
+        final android.view.View layoutModes = findViewById(getResources().getIdentifier("radioGroupModes", "id", getPackageName()));
+        final android.view.View layoutLanguages = findViewById(getResources().getIdentifier("layoutLanguagesList", "id", getPackageName()));
+        
+        android.view.View tabHome = findViewById(getResources().getIdentifier("tabHome", "id", getPackageName()));
+        android.view.View tabModes = findViewById(getResources().getIdentifier("tabModes", "id", getPackageName()));
+        android.view.View tabLanguages = findViewById(getResources().getIdentifier("tabLanguages", "id", getPackageName()));
+
+        if(tabHome != null) tabHome.setOnClickListener(v -> { if(layoutHome != null) layoutHome.setVisibility(android.view.View.VISIBLE); if(layoutModes != null) layoutModes.setVisibility(android.view.View.GONE); if(layoutLanguages != null) layoutLanguages.setVisibility(android.view.View.GONE); });
+        if(tabModes != null) tabModes.setOnClickListener(v -> { if(layoutHome != null) layoutHome.setVisibility(android.view.View.GONE); if(layoutModes != null) layoutModes.setVisibility(android.view.View.VISIBLE); if(layoutLanguages != null) layoutLanguages.setVisibility(android.view.View.GONE); });
+        if(tabLanguages != null) tabLanguages.setOnClickListener(v -> { if(layoutHome != null) layoutHome.setVisibility(android.view.View.GONE); if(layoutModes != null) layoutModes.setVisibility(android.view.View.GONE); if(layoutLanguages != null) layoutLanguages.setVisibility(android.view.View.VISIBLE); });
+    }
+
+    private void setupSpinner(String idName, String[] items) {
+        android.widget.Spinner spinner = findViewById(getResources().getIdentifier(idName, "id", getPackageName()));
+        if (spinner != null) {
+            android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(adapter);
+        }
+    }
+
+    private void setupAllSpinners() {
+        setupSpinner("spinnerBatteryInterval", new String[]{"10 Minutes", "20 Minutes", "30 Minutes", "1 Hour"});
+        setupSpinner("spinnerTimeInterval", new String[]{"15 Minutes", "30 Minutes", "1 Hour"});
+        setupSpinner("spinnerTimeFormat", new String[]{"12-Hour AM/PM", "24-Hour Military"});
+        setupSpinner("spinnerCallFormat", new String[]{"Caller Name Only", "Number Only", "Name and Number"});
+        setupSpinner("spinnerCallRepeat", new String[]{"Once", "Twice", "Continuously"});
+    }
+
 }
