@@ -36,7 +36,7 @@ public class SmartAnnouncerService extends Service implements TextToSpeech.OnIni
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         tts = new TextToSpeech(this, this);
         registerReceivers();
-        setupCallListener();
+        try { setupCallListener(); } catch (java.lang.SecurityException e) { e.printStackTrace(); } catch (Exception e) {}
     }
 
     @Override
