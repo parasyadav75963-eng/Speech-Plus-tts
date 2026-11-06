@@ -1,138 +1,128 @@
 package com.speechplus.tts;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.media.AudioAttributes;
-import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
+import android.widget.Button;
 import android.widget.Toast;
+import java.util.Calendar;
 
 public class MainActivity extends Activity {
     private SharedPreferences prefs;
-    private TextToSpeech testTts;
 
-    @Override
+    
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        prefs = getSharedPreferences("SpeechPlusPrefs", Context.MODE_PRIVATE);
+        prefs = getSharedPreferences("SpeechPlusPrefs", MODE_PRIVATE);
 
-        // Start background service
+        // Start our 100% working Smart Announcer Service in the background
         startService(new Intent(this, SmartAnnouncerService.class));
 
-        initTtsEngine();
-        setupAllSpinners();
-        setupAllButtons();
+        setupTalkBackTabDescriptions();
+        setupTestButtons();
     }
 
-    // Pro-Developer Helper to safely populate Spinners
-    private void setupSpinner(String idName, String[] items) {
-        int resId = getResources().getIdentifier(idName, "id", getPackageName());
-        if (resId != 0) {
-            Spinner spinner = findViewById(resId);
-            if (spinner != null) {
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, items);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
-            }
+    private void setupTalkBackTabDescriptions() {
+        // Find Tab Buttons/Views by standard IDs and set their English Descriptions for TalkBack
+        View tabHome = findViewById(R.id.tabHome);
+        if (tabHome != null) tabHome.setContentDescription(getString(R.string.desc_tab_home));
+
+        View tabModes = findViewById(R.id.tabModes);
+        if (tabModes != null) tabModes.setContentDescription(getString(R.string.desc_tab_modes));
+
+        View tabLanguages = findViewById(R.id.tabLanguages);
+        if (tabLanguages != null) tabLanguages.setContentDescription(getString(R.string.desc_tab_languages));
+        View tabVoices = findViewById(R.id.tabVoices);
+        if (tabVoices != null) tabVoices.setContentDescription(getString(R.string.desc_tab_voices));
+
+        View tabAdvanced = findViewById(R.id.tabAdvanced);
+        if (tabAdvanced != null) tabAdvanced.setContentDescription(getString(R.string.desc_tab_advanced));
+
+        View tabMore = findViewById(R.id.tabMore);
+        if (tabMore != null) tabMore.setContentDescription(getString(R.string.desc_tab_more));
+    }
+
+    private void setupTestButtons() {
+        Button btnTestTime = findViewById(R.id.btnTestTime);
+        if (btnTestTime != null) {
+            btnTestTime.setOnClickListener(new View.OnClickListener() {
+                
+                public void onClick(View v) {
+                    testCurrentTime();
+                }
+            });
+        }
+
+        Button btnTestBattery = findViewById(R.id.btnTestBattery);
+        if (btnTestBattery != null) {
+            btnTestBattery.setOnClickListener(new View.OnClickListener() {
+                
+                public void onClick(View v) {
+                    testCurrentBattery();
+                }
+            });
         }
     }
 
-    // Pro-Developer Helper to safely set Button Clicks
-    private void setupButtonClick(String idName, View.OnClickListener listener) {
-        int resId = getResources().getIdentifier(idName, "id", getPackageName());
-        if (resId != 0) {
-            View view = findViewById(resId);
-            if (view != null) {
-                view.setOnClickListener(listener);
-            }
+    private void testCurrentTime() {
+        Calendar c = Calendar.getInstance();
+        int minute = c.get(Calendar.MINUTE);
+        int hour = c.get(Calendar.HOUR);
+        if (hour == 0) hour = 12;
+        String amPm = c.get(Calendar.AM_PM) == Calendar.AM ? "AM" : "PM";
+        String timeText = "The time is " + hour + " " + (minute == 0 ? "o'clock" : minute) + " " + amPm;
+        Toast.makeText(this, timeText, Toast.LENGTH_SHORT).show();
+        speakTestText(timeText);
+    }
+
+    private void testCurrentBattery() {
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = registerReceiver(null, ifilter);
+        int level = batteryStatus != null ? batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) : -1;
+        String batteryText = "Current battery level is " + level + " percent";
+        Toast.makeText(this, batteryText, Toast.LENGTH_SHORT).show();
+        speakTestText(batteryText);
+    }
+
+    private android.speech.tts.TextToSpeech testTts;
+
+    private void speakTestText(String text) {
+        if (testTts == null) {
+            testTts = new android.speech.tts.TextToSpeech(this, status -> {
+                if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                    playChimeAndSpeak(text);
+                }
+            });
+        } else {
+            playChimeAndSpeak(text);
         }
     }
 
-    private void setupAllSpinners() {
-        // Populating all dead dropdowns to make them alive
-        setupSpinner("spinnerCallFormat", new String[]{"Caller Name Only", "Number Only", "Name and Number"});
-        setupSpinner("spinnerCallRepeat", new String[]{"Once", "Twice", "Continuously"});
-        setupSpinner("spinnerNumFormat", new String[]{"Standard", "Spaced", "Digits"});
-        setupSpinner("spinnerNumLang", new String[]{"English", "Hindi", "System Default"});
-        setupSpinner("spinnerPunctuation", new String[]{"None", "Some", "All"});
-        setupSpinner("spinnerVoiceLanguage", new String[]{"English (US)", "English (India)", "Hindi (India)"});
-        setupSpinner("spinnerVoiceEngine", new String[]{"Speech Plus", "Google TTS", "System Default"});
-        setupSpinner("spinnerVoiceVariant", new String[]{"Voice 1", "Voice 2", "Voice 3"});
-    }
-
-    private void setupAllButtons() {
-        // More Tab Action Buttons
-        setupButtonClick("btnOpenSystemTts", v -> {
-            try {
-                Intent intent = new Intent();
-                intent.setAction("com.android.settings.TTS_SETTINGS");
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, "Cannot open TTS Settings on this device", Toast.LENGTH_SHORT).show();
+    private void playChimeAndSpeak(String text) {
+        try {
+            android.net.Uri soundUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION);
+            android.media.MediaPlayer mp = android.media.MediaPlayer.create(this, soundUri);
+            if (mp != null) {
+                mp.setOnCompletionListener(mediaPlayer -> {
+                    mediaPlayer.release();
+                    testTts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
+                });
+                mp.start();
+            } else {
+                testTts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
             }
-        });
-
-        setupButtonClick("btnContactUs", v -> {
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.parse("mailto:contact.i.t.f.b@gmail.com"));
-            intent.putExtra(Intent.EXTRA_SUBJECT, "Speech Plus TTS Feedback");
-            try {
-                startActivity(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, "No email app found!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        setupButtonClick("btnJoinCommunity", v -> {
-            Toast.makeText(this, "Opening ITFB Community...", Toast.LENGTH_SHORT).show();
-            // We will add the actual community link here later
-        });
-
-        setupButtonClick("btnTestVoiceSingle", v -> {
-            speakText("This is a test of the Speech Plus TTS engine.");
-        });
-        
-        setupButtonClick("btnOpenSmartReader", v -> startActivity(new Intent(MainActivity.this, SmartReaderActivity.class)));
-        setupButtonClick("btnSettingsTimerBattery", v -> startActivity(new Intent(MainActivity.this, SettingsTimerBatteryActivity.class)));
-        setupButtonClick("btnSettingsDisplay", v -> startActivity(new Intent(MainActivity.this, SettingsDisplayActivity.class)));
-        setupButtonClick("btnSettingsSmartReader", v -> startActivity(new Intent(MainActivity.this, SettingsSmartReaderActivity.class)));
-        setupButtonClick("btnSettingsSound", v -> startActivity(new Intent(MainActivity.this, SettingsSoundActivity.class)));
-
-        setupButtonClick("btnPreviewCall", v -> {
-            speakText("Incoming call from Paras Yadav");
-        });
-    }
-
-    private void initTtsEngine() {
-        testTts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                // FIXED: Setting TTS to use Accessibility Volume Stream explicitly
-                AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build();
-                testTts.setAudioAttributes(audioAttributes);
-            }
-        });
-    }
-
-    private void speakText(String text) {
-        if (testTts != null) {
-            testTts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "TEST_UTTERANCE");
-            Toast.makeText(this, "Playing Audio...", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            testTts.speak(text, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, null);
         }
     }
 
-    @Override
+    
     protected void onDestroy() {
         if (testTts != null) {
             testTts.stop();
