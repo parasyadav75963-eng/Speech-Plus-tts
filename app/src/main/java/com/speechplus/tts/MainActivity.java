@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
     }
 
     private void setupTestButtons() {
-        Button btnTestTime = findViewById(R.id.btnTestTime);
+        Button btnTestTime = findViewById(getResources().getIdentifier("btnTestTime", "id", getPackageName()));
         if (btnTestTime != null) {
             btnTestTime.setOnClickListener(new View.OnClickListener() {
                 
@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
             });
         }
 
-        Button btnTestBattery = findViewById(R.id.btnTestBattery);
+        Button btnTestBattery = findViewById(getResources().getIdentifier("btnTestBattery", "id", getPackageName()));
         if (btnTestBattery != null) {
             btnTestBattery.setOnClickListener(new View.OnClickListener() {
                 
